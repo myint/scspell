@@ -9,7 +9,7 @@ from bisect import bisect_left
 from optparse import OptionParser
 
 import portable
-from corpus import SetCorpus, DictStoredSetCorpus, PrefixMatchingCorpus
+from corpus import SetCorpus, DictStoredSetCorpus, FileStoredCorpus, PrefixMatchingCorpus
 
 
 VERSION = '0.9'
@@ -78,8 +78,8 @@ def _handle_add(rejected_subtokens, dicts):
         while True:
             print ("""\
    Subtoken '%s':
-      (N)ext subtoken, add to (C)ustom dictionary, add to (P)er-file custom
-      dictionary, or add to (G)lobal dictionary? [N]""") % subtoken
+      (N)ext subtoken, add to (C)ustom dictionary, add to per-(F)ile custom
+      dictionary, or add to (K)eyword dictionary? [N]""") % subtoken
             ch = portable.getch().lower()
             if ch in (CTRL_C, CTRL_D, CTRL_Z):
                 print 'User abort.'
@@ -88,16 +88,12 @@ def _handle_add(rejected_subtokens, dicts):
                 break
             elif ch == 'c':
                 dicts.custom.add(subtoken)
-                dicts.custom_modified = True
                 break
-            elif ch == 'p':
-                dicts.custom_file.add(subtoken)
-                dicts.custom_file_modified = True
+            elif ch == 'f':
+                dicts.per_file.add(subtoken)
                 break
-            elif ch == 'g':
-                insertion_point = bisect_left(dicts.main, subtoken)
-                dicts.main.insert(insertion_point, subtoken)
-                dicts.main_modified = True
+            elif ch == 'k':
+                dicts.keyword.add(subtoken)
                 break
 
 
@@ -140,8 +136,10 @@ def _spell_check_line(filename, line_num, line, context, dicts):
             continue
         subtokens = _decompose_token(token)
         rejected_subtokens = [st for st in subtokens if len(st) > LEN_THRESHOLD
-                                                     and (not dicts.main.match(st))
+                                                     and (not dicts.english.match(st))
+                                                     and (not dicts.keyword.match(st))
                                                      and (not dicts.custom.match(st))
+                                                     and (not dicts.per_file.match(st))
                                                      and (not dicts.ignores.match(st))]
         if rejected_subtokens != []:
             # remove duplicate subtokens
@@ -182,10 +180,13 @@ def spell_check(source_filenames):
         print 'Creating new personal dictionary in %s .' % USER_DATA_DIR
     db = shelve.open(os.path.join(USER_DATA_DIR, 'dictionary.shelf'))
     try:
-        with contextlib.nested(PrefixMatchingCorpus('scspell-english-words.txt'),
-                DictStoredSetCorpus(db, '__custom')) as (english_dict, custom_dict):
+        with contextlib.nested(
+                PrefixMatchingCorpus('scspell-english-words.txt'),
+                FileStoredCorpus('scspell-keywords.txt'),
+                DictStoredSetCorpus(db, '__custom')) as (english_dict, keyword_dict, custom_dict):
             dicts = Bunch()
-            dicts.main    = english_dict
+            dicts.english    = english_dict
+            dicts.keyword = keyword_dict
             dicts.custom  = custom_dict
             dicts.ignores = SetCorpus()
 
@@ -205,16 +206,14 @@ if __name__ == '__main__':
 %prog [options] <source files>
 
 Performs spell-checking on all of the <source files>.  Tokens are matched
-against three separate dictionaries:
+against four separate dictionaries:
 
-    1) the "global" dictionary, distributed with The Spellinator
-    2) a "custom" dictionary, created for each user
-    3) a "custom per-file" dictionary, created for each user for each new file
-
-The "global" dictionary is intended to contain only dictionary words, programming
-language keywords and library function names, and bits of programming jargon.
-The "custom" dictionaries may contain whatever tokens you wish to exclude from
-spell-checking.
+    1) the (American) English dictionary distributed with scspell
+    2) a programming language "keyword" dictionary, distributed with scspell
+        and updated by users
+    3) a "custom" dictionary, created from scratch for each user
+    4) a "custom per-file" dictionary, created from scratch for each user
+        for each new file
 
 The spell-check algorithm locates alphanumeric tokens and splits them into
 alphabetical subtokens.  CamelCase-style tokens are split into subtokens along
@@ -235,18 +234,22 @@ for each subtoken:
     (N)ext subtoken:        no action--move on to the next subtoken
     (C)ustom dictionary:    adds this subtoken to the user's general-purpose
                                 custom dictionary
-    (P)er-file dictionary:  adds this subtoken to the user's custom dictionary
+    per-(F)ile dictionary:  adds this subtoken to the user's custom dictionary
                                 associated with the current file
-    (G)lobal dictionary:    adds this subtoken to the global dictionary,
-                                eventually propagating it to all users
-
-Please be judicious when adding subtokens to the global dictionary.
+    (K)eyword dictionary:   adds this subtoken to the keyword dictionary,
+                                which may be shared with other users
 
 The matching algorithm is designed to overlook common abbreviations used
 in programming.  Subtokens shorter than four characters are always ignored,
-and a subtoken need only be a prefix of a dictionary word to match that word.""",
-    version = """scspell v%s""" % VERSION)
+and a subtoken need only be a prefix of an English word to match that word.""",
+    version = """\
+scspell v%s
+Copyright (C) 2009 Paul Pelzl
 
+scspell comes with ABSOLUTELY NO WARRANTY.  This is free software, and
+you are welcome to redistribute it under certain conditions; for details,
+see the COPYING file distributed with the program.
+""" % VERSION)
 
     (opts, args) = parser.parse_args()
     if len(args) < 1:

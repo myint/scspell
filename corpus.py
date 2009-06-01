@@ -61,12 +61,15 @@ class FileStoredCorpus(Corpus):
     def match(self, word):
         """Returns True if the word is present in this Corpus."""
         insertion_point = bisect_left(self._words, word)
-        return self._words[insertion_point] == word
+        if insertion_point < len(self._words):
+            return self._words[insertion_point] == word
+        else:
+            return False
 
     def add(self, word):
         """Adds the specified word to this Corpus."""
         insertion_point = bisect_left(self._words, word)
-        if self._words[insertion_point] != word:
+        if insertion_point >= len(self._words) or self._words[insertion_point] != word:
             self._words.insert(insertion_point, word)
             self._mark_dirty()
 
@@ -129,8 +132,9 @@ class PrefixMatchingCorpus(FileStoredCorpus):
         dictionary.
         """
         insertion_point = bisect_left(self._words, word)
-        return self._words[insertion_point].startswith(word)
-
-
+        if insertion_point < len(self._words):
+            return self._words[insertion_point].startswith(word)
+        else:
+            return False
 
 
