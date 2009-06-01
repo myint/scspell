@@ -7,10 +7,8 @@ from __future__ import with_statement
 import contextlib, os, re, sys, shelve
 from bisect import bisect_left
 from optparse import OptionParser
-try:
-    from msvcrt import getch
-except ImportError:
-    from getch import getch
+
+import portable
 from corpus import SetCorpus, DictStoredSetCorpus, PrefixMatchingCorpus
 
 
@@ -21,11 +19,8 @@ CTRL_C = '\x03'         # Special key codes returned from getch()
 CTRL_D = '\x04'
 CTRL_Z = '\x1a'
 
-if sys.platform == 'win32':
-    USER_DATA_DIR = os.path.normpath(os.path.join(os.getenv('APPDATA'), 'scspell'))
-else:
-    USER_DATA_DIR = os.path.normpath(os.path.join(os.getenv('HOME'), '.scspell'))
-SCSPELL_DIR = os.path.dirname(__file__)
+USER_DATA_DIR = portable.get_data_dir('scspell')
+SCSPELL_DIR   = os.path.dirname(__file__)
 
 # Treat anything alphanumeric as a token of interest
 _token_regex = re.compile(r'\w+')
@@ -85,7 +80,7 @@ def _handle_add(rejected_subtokens, dicts):
    Subtoken '%s':
       (N)ext subtoken, add to (C)ustom dictionary, add to (P)er-file custom
       dictionary, or add to (G)lobal dictionary? [N]""") % subtoken
-            ch = getch().lower()
+            ch = portable.getch().lower()
             if ch in (CTRL_C, CTRL_D, CTRL_Z):
                 print 'User abort.'
                 sys.exit(1)
@@ -112,7 +107,7 @@ def _handle_failed_check(token, filename, line_num, context, rejected_subtokens,
         (filename, (line_num + 1), token, ', '.join([st for st in rejected_subtokens]))
     while True:
         print '   (N)ext token, (I)gnore all, (A)dd to dictionary, or show (C)ontext? [N]'
-        ch = getch().lower()
+        ch = portable.getch().lower()
         if ch in (CTRL_C, CTRL_D, CTRL_Z):
             print 'User abort.'
             sys.exit(1)
@@ -250,7 +245,7 @@ Please be judicious when adding subtokens to the global dictionary.
 The matching algorithm is designed to overlook common abbreviations used
 in programming.  Subtokens shorter than four characters are always ignored,
 and a subtoken need only be a prefix of a dictionary word to match that word.""",
-    version = """The Spellinator v%s""" % VERSION)
+    version = """scspell v%s""" % VERSION)
 
 
     (opts, args) = parser.parse_args()
