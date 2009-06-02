@@ -38,8 +38,72 @@ class Bunch:
     pass
 
 
-def _clamp(value, low_limit, high_limit):
-    return min(max(value, low_limit), high_limit)
+class MatchDescriptor(object):
+    """A MatchDescriptor captures the information necessary to represent a token
+    matched within some source code.
+    """
+
+    def __init__(self, text, matchobj):
+        self._data     = text
+        self._pos      = matchobj.start()
+        self._token    = matchobj.group()
+        self._context  = None
+        self._line_num = None
+
+    def get_token(self):
+        return self._token
+
+    def get_string(self):
+        """Gets the entire string in which the match was found."""
+        return self._data
+
+    def get_ofs(self):
+        """Gets the offset within the string where the match is located."""
+        return self._pos
+
+    def get_prefix(self):
+        """Gets the string preceding this match."""
+        return self._data[:self._pos]
+
+    def get_remainder(self):
+        """Gets the string consisting of this match and all remaining characters."""
+        return self._data[self._pos:]
+
+    def get_context(self):
+        """Computes the lines of context associated with this match, as a sequence of
+        (line_num, line_string) values.
+        """
+        if self._context is not None:
+            return self._context
+
+        lines = self._data.split('\n')
+
+        # Compute the byte offset of start of every line
+        offsets = []
+        for i in xrange(len(lines)):
+            if i == 0:
+                offsets.append(0)
+            else:
+                offsets.append(offsets[i-1] + len(lines[i-1]) + 1)
+
+        # Compute the line number where the match is located
+        for (i, ofs) in enumerate(offsets):
+            if ofs > self._pos:
+                self._line_num = i
+                break
+        if self._line_num is None:
+            self._line_num = len(lines)
+
+        # Compute the set of lines surrounding this line number
+        self._context = [(i+1, line.strip('\r\n')) for (i, line) in enumerate(lines) if 
+                (i+1 - self._line_num) in range(-CONTEXT_SIZE/2, CONTEXT_SIZE/2 + 1)]
+        return self._context
+
+    def get_line_num(self):
+        """Computes the line number of the match."""
+        if self._line_num is None:
+            self.get_context()
+        return self._line_num
 
 
 def _make_unique(items):
@@ -70,19 +134,19 @@ def _decompose_token(token):
     return [st.lower() for st in subtokens if st != '']
     
 
-def _handle_add(rejected_subtokens, dicts):
+def _handle_add(failed_subtokens, dicts):
     """Handles addition of one or more subtokens to a dictionary."""
-    for subtoken in rejected_subtokens:
+    for subtoken in failed_subtokens:
         while True:
             print ("""\
    Subtoken '%s':
-      (N)ext subtoken, add to (C)ustom dictionary, add to per-(F)ile custom
-      dictionary, or add to (K)eyword dictionary? [N]""") % subtoken
-            ch = portable.getch().lower()
+      (i)gnore, add to (c)ustom dictionary, add to per-(f)ile custom
+      dictionary, or add to (k)eyword dictionary: [i]""") % subtoken
+            ch = portable.getch()
             if ch in (CTRL_C, CTRL_D, CTRL_Z):
                 print 'User abort.'
                 sys.exit(1)
-            elif ch in ('n', '\r', '\n'):
+            elif ch in ('i', '\r', '\n'):
                 break
             elif ch == 'c':
                 dicts.custom.add(subtoken)
@@ -95,55 +159,78 @@ def _handle_add(rejected_subtokens, dicts):
                 break
 
 
-def _handle_failed_check(token, filename, line_num, context, rejected_subtokens, dicts):
-    """Handles a spellchecker match failure."""
-    print "%s:%u: Unmatched '%s' --> {%s}" % \
-        (filename, (line_num + 1), token, ', '.join([st for st in rejected_subtokens]))
+def _handle_failed_check(match_desc, filename, failed_subtokens, dicts):
+    """Handles a spellchecker match failure.
+
+    Returns: (text, ofs), where <text> is the (possibly modified) source text and
+             <ofs> is the byte offset within the text where searching should resume.
+    """
+    token = match_desc.get_token()
+    print "%s:%u: Unmatched '%s' --> {%s}" % (filename, match_desc.get_line_num(), token, 
+                ', '.join([st for st in failed_subtokens]))
+    match_regex = re.compile(re.escape(match_desc.get_token()))
     while True:
-        print '   (N)ext token, (I)gnore all, (A)dd to dictionary, or show (C)ontext? [N]'
-        ch = portable.getch().lower()
+        print """\
+   (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or show (c)ontext? [i]"""
+        ch = portable.getch()
         if ch in (CTRL_C, CTRL_D, CTRL_Z):
             print 'User abort.'
             sys.exit(1)
-        elif ch in ('n', '\r', '\n'):
+        elif ch in ('i', '\r', '\n'):
             break
-        elif ch == 'i':
+        elif ch == 'I':
             dicts.ignores.add(token.lower())
             break
+        elif ch == 'r':
+            replacement = raw_input('      Replacement text: ')
+            if replacement == '':
+                print '      (Not replaced.)'
+                break
+            dicts.ignores.add(replacement.lower())
+            tail = re.sub(match_regex, replacement, match_desc.get_remainder(), 1)
+            return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
+        elif ch == 'R':
+            replacement = raw_input('      Replacement text: ')
+            if replacement == '':
+                print '      (Not replaced.)'
+                break
+            dicts.ignores.add(replacement.lower())
+            tail = re.sub(match_regex, replacement, match_desc.get_remainder())
+            return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
         elif ch == 'a':
-            _handle_add(rejected_subtokens, dicts)
+            _handle_add(failed_subtokens, dicts)
             break
         elif ch == 'c':
-            for ln, ctx in context:
-                print '%4u: %s' % (ln, ctx.strip('\r\n'))
+            for ctx in match_desc.get_context():
+                print '%4u: %s' % ctx
             print
     print
+    # Default: text is unchanged
+    return (match_desc.get_string(), match_desc.get_ofs() + len(match_desc.get_token()))
 
 
-def _spell_check_line(filename, line_num, line, context, dicts):
-    """Runs the spellchecker for a single <line> of text.  The line is at offset
-    <line_num>, and is surrounded by the given set of <context>.  The dictionaries
-    enumerated in <dicts> shall be searched.
+def _handle_token(match_desc, filename, dicts):
+    """Handles a matched token described by <match_desc>.  <filename> is the
+    current filename, and <dicts> is the set of dictionaries against which
+    we will search.
 
-    Returns: N/A.  <modified> shall be updated to reflect the various dictionaries
-                   that have been mutated.
+    Returns: (text, ofs), where <text> is the (possibly modified) source text and
+             <ofs> is the byte offset within the text where searching should resume.
     """
-    for token in _token_regex.findall(line):
-        # Exclude hex as a special case
-        if dicts.ignores.match(token.lower()) or (_hex_regex.match(token) is not None):
-            continue
+    token = match_desc.get_token()
+    if (not dicts.ignores.match(token.lower())) and (_hex_regex.match(token) is None):
         subtokens = _decompose_token(token)
-        rejected_subtokens = [st for st in subtokens if len(st) > LEN_THRESHOLD
-                                                     and (not dicts.english.match(st))
-                                                     and (not dicts.keyword.match(st))
-                                                     and (not dicts.custom.match(st))
-                                                     and (not dicts.per_file.match(st))
-                                                     and (not dicts.ignores.match(st))]
-        if rejected_subtokens != []:
-            # remove duplicate subtokens
-            rejected_subtokens = _make_unique(rejected_subtokens)
-            _handle_failed_check(token, filename, line_num, context, rejected_subtokens, dicts)
-                        
+        failed_subtokens = [st for st in subtokens if len(st) > LEN_THRESHOLD
+                                                   and (not dicts.english.match(st))
+                                                   and (not dicts.keyword.match(st))
+                                                   and (not dicts.custom.match(st))
+                                                   and (not dicts.per_file.match(st))
+                                                   and (not dicts.ignores.match(st))]
+        if failed_subtokens != []:
+            failed_subtokens = _make_unique(failed_subtokens)
+            return _handle_failed_check(match_desc, filename, failed_subtokens, dicts)
+    return (match_desc.get_string(), match_desc.get_ofs() + len(token))
+
 
 def _spell_check_file(source_filename, db, dicts):
     """Runs the spellchecker on a single <source_filename>, using <dicts> as
@@ -151,22 +238,34 @@ def _spell_check_file(source_filename, db, dicts):
     """
 
     fq_filename = os.path.normcase(os.path.realpath(source_filename))
-    try:
-        source_file = open(fq_filename, 'r')
-        lines = source_file.readlines()
-    except IOError, e:
-        print str(e)
-        return
+    with open(fq_filename, 'rb') as source_file:
+        try:
+            source_text = source_file.read()
+        except IOError, e:
+            print str(e)
+            return
 
     # Look up the per-file dictionary
     with DictStoredSetCorpus(db, fq_filename) as per_file_dict:
         dicts.per_file = per_file_dict
-        for line_num, line in enumerate(lines):
-            context_min = _clamp(line_num - CONTEXT_SIZE/2, 0, len(lines) - 1)
-            context_max = _clamp(line_num + CONTEXT_SIZE/2, 0, len(lines) - 1)
-            context = [(i, lines[i]) for i in range(context_min, context_max+1)]
-            _spell_check_line(source_filename, line_num, line, context, dicts)
 
+        data = source_text
+        pos  = 0
+        while True:
+            m = _token_regex.search(data, pos)
+            if m is None:
+                break
+            (data, pos) = _handle_token(MatchDescriptor(data, m), fq_filename, dicts)
+
+    # Write out the source file if it was modified
+    if data != source_text:
+        with open(fq_filename, 'wb') as source_file:
+            try:
+                source_file.write(data)
+            except IOError, e:
+                print str(e)
+                return
+            
 
 def spell_check(source_filenames):
     """Runs the interactive spellchecker on the set of <source_filenames>.
@@ -186,7 +285,7 @@ def spell_check(source_filenames):
                 FileStoredCorpus(KEYWORDS_LOC),
                 DictStoredSetCorpus(db, '__custom')) as (english_dict, keyword_dict, custom_dict):
             dicts = Bunch()
-            dicts.english    = english_dict
+            dicts.english = english_dict
             dicts.keyword = keyword_dict
             dicts.custom  = custom_dict
             dicts.ignores = SetCorpus()
