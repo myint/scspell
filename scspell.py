@@ -5,7 +5,7 @@ scspell -- an interactive, conservative spell-checker for source code.
 
 import sys
 from optparse import OptionParser
-from scspell.scspell import spell_check
+from scspell import spell_check
 
 
 VERSION = '0.9'
