@@ -275,7 +275,7 @@ def _spell_check_file(source_filename, db, dicts):
             m = _token_regex.search(data, pos)
             if m is None:
                 break
-            (data, pos) = _handle_token(MatchDescriptor(data, m), fq_filename, dicts)
+            (data, pos) = _handle_token(MatchDescriptor(data, m), source_filename, dicts)
 
     # Write out the source file if it was modified
     if data != source_text:
