@@ -25,7 +25,7 @@ scspell -- an interactive, conservative spell-checker for source code.
 
 import sys
 from optparse import OptionParser
-from scspell import spell_check, set_keyword_dict, VERSION
+import scspell
 
 
 parser = OptionParser(usage="""\
@@ -39,7 +39,7 @@ Copyright (C) 2009 Paul Pelzl
 %%prog comes with ABSOLUTELY NO WARRANTY.  This is free software, and
 you are welcome to redistribute it under certain conditions; for details,
 see COPYING.txt as distributed with the program.
-""" % VERSION)
+""" % scspell.VERSION)
 parser.add_option('--set-keyword-dictionary', dest='keyword_dict',
         help='set location of keyword dictionary to FILE', metavar='FILE',
 		action='store')
@@ -50,13 +50,14 @@ parser.add_option('--export-keyword-dictionary', dest='keyword_export_filename',
 
 (opts, args) = parser.parse_args()
 if opts.keyword_dict is not None:
-	set_keyword_dict(opts.keyword_dict)
+	scspell.set_keyword_dict(opts.keyword_dict)
 elif opts.keyword_export_filename is not None:
-	print "exporting"
+	scspell.export_keyword_dict(opts.keyword_export_filename)
+	print 'Exported keyword dictionary to "%s".' % opts.keyword_export_filename
 elif len(args) < 1:
     parser.print_help()
     sys.exit(1)
 else:
-	spell_check(args)
+	scspell.spell_check(args)
    
 

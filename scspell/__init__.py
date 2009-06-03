@@ -357,6 +357,10 @@ def set_keyword_dict(filename):
         config.write(f)
 
 
+def export_keyword_dict(filename):
+    """Exports the current keyword dictionary to the specified file."""
+    shutil.copyfile(locate_keyword_dict(), filename)
+
     
 def spell_check(source_filenames):
     """Runs the interactive spellchecker on the set of <source_filenames>.
