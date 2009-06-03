@@ -262,12 +262,13 @@ def spell_check_file(source_filename, db, dicts):
     """
 
     fq_filename = os.path.normcase(os.path.realpath(source_filename))
-    with open(fq_filename, 'rb') as source_file:
-        try:
+    try:
+        with open(fq_filename, 'rb') as source_file:
             source_text = source_file.read()
-        except IOError, e:
-            print str(e)
-            return
+    except IOError, e:
+        print 'Error: can\'t read source file "%s"; skipping.  (Reason: %s)' % \
+                    (source_filename, str(e))
+        return
 
     # Look up the per-file dictionary
     with DictStoredSetCorpus(db, fq_filename) as per_file_dict:
