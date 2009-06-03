@@ -31,7 +31,7 @@ import _portable
 from _corpus import SetCorpus, DictStoredSetCorpus, FileStoredCorpus, PrefixMatchingCorpus
 
 
-VERSION = '0.9.0'
+VERSION = '0.1.0'
 CONTEXT_SIZE  = 4       # Size of context printed upon request
 LEN_THRESHOLD = 3       # Subtokens shorter than 4 characters are likely to be abbreviations
 CTRL_C = '\x03'         # Special key codes returned from getch()
