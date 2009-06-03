@@ -27,8 +27,8 @@ import contextlib, os, re, sys, shelve, shutil
 from bisect import bisect_left
 import ConfigParser
 
-import portable
-from corpus import SetCorpus, DictStoredSetCorpus, FileStoredCorpus, PrefixMatchingCorpus
+import _portable
+from _corpus import SetCorpus, DictStoredSetCorpus, FileStoredCorpus, PrefixMatchingCorpus
 
 
 VERSION = '0.9.0'
@@ -38,23 +38,23 @@ CTRL_C = '\x03'         # Special key codes returned from getch()
 CTRL_D = '\x04'
 CTRL_Z = '\x1a'
 
-USER_DATA_DIR        = portable.get_data_dir('scspell')
+USER_DATA_DIR        = _portable.get_data_dir('scspell')
 KEYWORDS_DEFAULT_LOC = os.path.join(USER_DATA_DIR, 'keywords.txt')
 SCSPELL_DATA_DIR     = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data'))
 SCSPELL_CONF         = os.path.join(USER_DATA_DIR, 'scspell.conf')
 
 
 # Treat anything alphanumeric as a token of interest
-_token_regex = re.compile(r'\w+')
+token_regex = re.compile(r'\w+')
 
 # Hex digits will be treated as a special case, because they can look like
 # word-like even though they are actually numeric
-_hex_regex = re.compile(r'0x[0-9a-fA-F]+')
+hex_regex = re.compile(r'0x[0-9a-fA-F]+')
 
 # We assume that tokens will be split using either underscores,
 # digits, or camelCase conventions (or both)
-_us_regex         = re.compile(r'[_\d]+')
-_camel_word_regex = re.compile(r'([A-Z][a-z]*)')
+us_regex         = re.compile(r'[_\d]+')
+camel_word_regex = re.compile(r'([A-Z][a-z]*)')
 
 
 # Used as a generic struct
@@ -130,7 +130,7 @@ class MatchDescriptor(object):
         return self._line_num
 
 
-def _make_unique(items):
+def make_unique(items):
     """Removes duplicate items from a list, while preserving list order."""
     seen = set()
     def first_occurrence(i):
@@ -141,24 +141,24 @@ def _make_unique(items):
     return [i for i in items if first_occurrence(i)]
 
 
-def _decompose_token(token):
+def decompose_token(token):
     """Divides a token into a list of strings of letters.  Tokens are divided by
     underscores and digits, and capital letters will begin new subtokens.
 
     Returns: list of subtoken strings
     """
-    us_parts    = _us_regex.split(token)
+    us_parts    = us_regex.split(token)
     if ''.join(us_parts).isupper():
         # This looks like a CONSTANT_DEFINE_OF_SOME_SORT
         subtokens = us_parts
     else:
-        camelcase_parts = [_camel_word_regex.split(us_part) for us_part in us_parts]
+        camelcase_parts = [camel_word_regex.split(us_part) for us_part in us_parts]
         subtokens = sum(camelcase_parts, [])
     # This use of split() will create many empty strings
     return [st.lower() for st in subtokens if st != '']
     
 
-def _handle_add(failed_subtokens, dicts):
+def handle_add(failed_subtokens, dicts):
     """Handles addition of one or more subtokens to a dictionary."""
     for subtoken in failed_subtokens:
         while True:
@@ -166,7 +166,7 @@ def _handle_add(failed_subtokens, dicts):
    Subtoken '%s':
       (i)gnore, add to (c)ustom dictionary, add to per-(f)ile custom
       dictionary, or add to (k)eyword dictionary: [i]""") % subtoken
-            ch = portable.getch()
+            ch = _portable.getch()
             if ch in (CTRL_C, CTRL_D, CTRL_Z):
                 print 'User abort.'
                 sys.exit(1)
@@ -183,7 +183,7 @@ def _handle_add(failed_subtokens, dicts):
                 break
 
 
-def _handle_failed_check(match_desc, filename, failed_subtokens, dicts):
+def handle_failed_check(match_desc, filename, failed_subtokens, dicts):
     """Handles a spellchecker match failure.
 
     Returns: (text, ofs), where <text> is the (possibly modified) source text and
@@ -196,7 +196,7 @@ def _handle_failed_check(match_desc, filename, failed_subtokens, dicts):
     while True:
         print """\
    (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or show (c)ontext? [i]"""
-        ch = portable.getch()
+        ch = _portable.getch()
         if ch in (CTRL_C, CTRL_D, CTRL_Z):
             print 'User abort.'
             sys.exit(1)
@@ -222,7 +222,7 @@ def _handle_failed_check(match_desc, filename, failed_subtokens, dicts):
             tail = re.sub(match_regex, replacement, match_desc.get_remainder())
             return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
         elif ch == 'a':
-            _handle_add(failed_subtokens, dicts)
+            handle_add(failed_subtokens, dicts)
             break
         elif ch == 'c':
             for ctx in match_desc.get_context():
@@ -233,7 +233,7 @@ def _handle_failed_check(match_desc, filename, failed_subtokens, dicts):
     return (match_desc.get_string(), match_desc.get_ofs() + len(match_desc.get_token()))
 
 
-def _handle_token(match_desc, filename, dicts):
+def handle_token(match_desc, filename, dicts):
     """Handles a matched token described by <match_desc>.  <filename> is the
     current filename, and <dicts> is the set of dictionaries against which
     we will search.
@@ -242,8 +242,8 @@ def _handle_token(match_desc, filename, dicts):
              <ofs> is the byte offset within the text where searching should resume.
     """
     token = match_desc.get_token()
-    if (not dicts.ignores.match(token.lower())) and (_hex_regex.match(token) is None):
-        subtokens = _decompose_token(token)
+    if (not dicts.ignores.match(token.lower())) and (hex_regex.match(token) is None):
+        subtokens = decompose_token(token)
         failed_subtokens = [st for st in subtokens if len(st) > LEN_THRESHOLD
                                                    and (not dicts.english.match(st))
                                                    and (not dicts.keyword.match(st))
@@ -251,12 +251,12 @@ def _handle_token(match_desc, filename, dicts):
                                                    and (not dicts.per_file.match(st))
                                                    and (not dicts.ignores.match(st))]
         if failed_subtokens != []:
-            failed_subtokens = _make_unique(failed_subtokens)
-            return _handle_failed_check(match_desc, filename, failed_subtokens, dicts)
+            failed_subtokens = make_unique(failed_subtokens)
+            return handle_failed_check(match_desc, filename, failed_subtokens, dicts)
     return (match_desc.get_string(), match_desc.get_ofs() + len(token))
 
 
-def _spell_check_file(source_filename, db, dicts):
+def spell_check_file(source_filename, db, dicts):
     """Runs the spellchecker on a single <source_filename>, using <dicts> as
     the set of dictionaries.  <db> is the user's persistent storage class.
     """
@@ -276,10 +276,10 @@ def _spell_check_file(source_filename, db, dicts):
         data = source_text
         pos  = 0
         while True:
-            m = _token_regex.search(data, pos)
+            m = token_regex.search(data, pos)
             if m is None:
                 break
-            (data, pos) = _handle_token(MatchDescriptor(data, m), source_filename, dicts)
+            (data, pos) = handle_token(MatchDescriptor(data, m), source_filename, dicts)
 
     # Write out the source file if it was modified
     if data != source_text:
@@ -384,8 +384,11 @@ def spell_check(source_filenames):
             dicts.ignores = SetCorpus()
 
             for f in source_filenames:
-                _spell_check_file(f, db, dicts)
+                spell_check_file(f, db, dicts)
     finally:
         db.close()
+
+
+__all__ = ['spell_check', 'set_keyword_dict', 'export_keyword_dict', 'VERSION']
 
 
