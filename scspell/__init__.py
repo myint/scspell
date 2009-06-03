@@ -41,6 +41,8 @@ CTRL_Z = '\x1a'
 USER_DATA_DIR        = portable.get_data_dir('scspell')
 KEYWORDS_DEFAULT_LOC = os.path.join(USER_DATA_DIR, 'keywords.txt')
 SCSPELL_DATA_DIR     = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data'))
+SCSPELL_CONF         = os.path.join(USER_DATA_DIR, 'scspell.conf')
+
 
 # Treat anything alphanumeric as a token of interest
 _token_regex = re.compile(r'\w+')
@@ -289,12 +291,22 @@ def _spell_check_file(source_filename, db, dicts):
                 return
             
 
+def verify_user_data_dir():
+    """Verifies that the user data directory is present, or creates one
+    from scratch.
+    """
+    if not os.path.exists(USER_DATA_DIR):
+        print 'Creating new personal dictionaries in %s .\n' % USER_DATA_DIR
+        os.makedirs(USER_DATA_DIR)
+        shutil.copyfile(os.path.join(SCSPELL_DATA_DIR, 'keywords.txt'), KEYWORDS_DEFAULT_LOC)
+
+
+
 def locate_keyword_dict():
     """Loads the location of the keyword dictionary.  This is either
     the default location, or an override specified in 'scspell.conf'.
     """
-    SCSPELL_CONF = os.path.join(USER_DATA_DIR, 'scspell.conf')
-
+    verify_user_data_dir()
     try:
         f = open(SCSPELL_CONF, 'r')
     except IOError:
@@ -310,7 +322,7 @@ def locate_keyword_dict():
         f.close()
 
     try:
-        loc = config.get('DEFAULT', 'keyword_dictionary')
+        loc = config.get('Locations', 'keyword_dictionary')
         if os.path.isabs(loc):
             return loc
         else:
@@ -321,20 +333,40 @@ def locate_keyword_dict():
         return KEYWORDS_DEFAULT_LOC
 
 
+def set_keyword_dict(filename):
+    """Sets the location of the keyword dictionary to the specified filename."""
+    if not os.path.isabs(filename):
+        print 'Error: keyword dictionary location must be an absolute path.'
+        sys.exit(1)
 
+    verify_user_data_dir()
+    config = ConfigParser.RawConfigParser()
+    try:
+        config.read(SCSPELL_CONF)
+    except ConfigParser.ParsingError, e:
+        print str(e)
+        sys.exit(1)
+
+    try:
+        config.add_section('Locations')
+    except ConfigParser.DuplicateSectionError:
+        pass
+    config.set('Locations', 'keyword_dictionary', filename)
+
+    with open(SCSPELL_CONF, 'w') as f:
+        config.write(f)
+
+
+    
 def spell_check(source_filenames):
     """Runs the interactive spellchecker on the set of <source_filenames>.
 
     Returns: N/A
     """
-    if not os.path.exists(USER_DATA_DIR):
-        print 'Creating new personal dictionaries in %s .' % USER_DATA_DIR
-        os.makedirs(USER_DATA_DIR)
-        shutil.copyfile(os.path.join(SCSPELL_DATA_DIR, 'keywords.txt'), KEYWORDS_DEFAULT_LOC)
-
     ENGLISH_LOC  = os.path.join(SCSPELL_DATA_DIR, 'english-words.txt')
     KEYWORDS_LOC = locate_keyword_dict()
 
+    verify_user_data_dir()
     db = shelve.open(os.path.join(USER_DATA_DIR, 'custom.shelf'))
     try:
         with contextlib.nested(

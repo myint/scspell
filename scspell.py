@@ -25,7 +25,7 @@ scspell -- an interactive, conservative spell-checker for source code.
 
 import sys
 from optparse import OptionParser
-from scspell import spell_check, VERSION
+from scspell import spell_check, set_keyword_dict, VERSION
 
 
 parser = OptionParser(usage="""\
@@ -41,15 +41,22 @@ you are welcome to redistribute it under certain conditions; for details,
 see COPYING.txt as distributed with the program.
 """ % VERSION)
 parser.add_option('--set-keyword-dictionary', dest='keyword_dict',
-        help='set location of keyword dictionary to FILE', metavar='FILE')
+        help='set location of keyword dictionary to FILE', metavar='FILE',
+		action='store')
 parser.add_option('--export-keyword-dictionary', dest='keyword_export_filename',
-        help='export current keyword dictionary to FILE', metavar='FILE')
+        help='export current keyword dictionary to FILE', metavar='FILE',
+		action='store')
 
 
 (opts, args) = parser.parse_args()
-if len(args) < 1:
+if opts.keyword_dict is not None:
+	set_keyword_dict(opts.keyword_dict)
+elif opts.keyword_export_filename is not None:
+	print "exporting"
+elif len(args) < 1:
     parser.print_help()
     sys.exit(1)
-spell_check(args)
+else:
+	spell_check(args)
    
 
