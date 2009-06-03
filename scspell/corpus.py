@@ -71,11 +71,18 @@ class FileStoredCorpus(Corpus):
         """Loads the word list from the specified file."""
         Corpus.__init__(self)
         self._filename = filename
-        with open(filename, 'rb') as f:
-            self._words = [word.strip('\r\n') for word in f.readlines()]
-            # The word list *should* be sorted already, but someone could have
-            # corrupted it...
-            self._words.sort()
+        try:
+            with open(filename, 'rb') as f:
+                self._words = [word.strip('\r\n') for word in f.readlines()]
+                # The word list *should* be sorted already, but someone could have
+                # corrupted it...
+                self._words.sort()
+        except IOError:
+            print 'Warning: can\'t read dictionary file "%s".' % filename
+            print 'Continuing with empty dictionary.'
+            print
+            self._words = []
+
 
     def match(self, word):
         """Returns True if the word is present in this Corpus."""
@@ -95,9 +102,12 @@ class FileStoredCorpus(Corpus):
     def close(self):
         """Closes this corpus, writing back any updates."""
         if self._is_dirty():
-            with open(self._filename, 'wb') as f:
-                f.writelines([w + '\n' for w in self._words])
-            self._mark_clean()
+            try:
+                with open(self._filename, 'wb') as f:
+                    f.writelines([w + '\n' for w in self._words])
+                self._mark_clean()
+            except IOError:
+                print 'Warning: unable to write dictionary file "%s".' % self._filename
 
 
 class SetCorpus(Corpus):

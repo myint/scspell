@@ -25,6 +25,7 @@ scspell -- an interactive, conservative spell-checker for source code.
 from __future__ import with_statement
 import contextlib, os, re, sys, shelve, shutil
 from bisect import bisect_left
+import ConfigParser
 
 import portable
 from corpus import SetCorpus, DictStoredSetCorpus, FileStoredCorpus, PrefixMatchingCorpus
@@ -37,8 +38,9 @@ CTRL_C = '\x03'         # Special key codes returned from getch()
 CTRL_D = '\x04'
 CTRL_Z = '\x1a'
 
-USER_DATA_DIR    = portable.get_data_dir('scspell')
-SCSPELL_DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data'))
+USER_DATA_DIR        = portable.get_data_dir('scspell')
+KEYWORDS_DEFAULT_LOC = os.path.join(USER_DATA_DIR, 'keywords.txt')
+SCSPELL_DATA_DIR     = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data'))
 
 # Treat anything alphanumeric as a token of interest
 _token_regex = re.compile(r'\w+')
@@ -287,17 +289,52 @@ def _spell_check_file(source_filename, db, dicts):
                 return
             
 
+def locate_keyword_dict():
+    """Loads the location of the keyword dictionary.  This is either
+    the default location, or an override specified in 'scspell.conf'.
+    """
+    SCSPELL_CONF = os.path.join(USER_DATA_DIR, 'scspell.conf')
+
+    try:
+        f = open(SCSPELL_CONF, 'r')
+    except IOError:
+        return KEYWORDS_DEFAULT_LOC
+
+    config = ConfigParser.RawConfigParser()
+    try:
+        config.readfp(f)
+    except ConfigParser.ParsingError, e:
+        print str(e)
+        sys.exit(1)
+    finally:
+        f.close()
+
+    try:
+        loc = config.get('DEFAULT', 'keyword_dictionary')
+        if os.path.isabs(loc):
+            return loc
+        else:
+            print ('Error while parsing "%s": keyword_dictionary must be an absolute path.' %
+                    SCSPELL_CONF)
+            sys.exit(1)
+    except ConfigParser.Error:
+        return KEYWORDS_DEFAULT_LOC
+
+
+
 def spell_check(source_filenames):
     """Runs the interactive spellchecker on the set of <source_filenames>.
 
     Returns: N/A
     """
-    ENGLISH_LOC  = os.path.join(SCSPELL_DATA_DIR, 'english-words.txt')
-    KEYWORDS_LOC = os.path.join(USER_DATA_DIR,    'keywords.txt')
     if not os.path.exists(USER_DATA_DIR):
         print 'Creating new personal dictionaries in %s .' % USER_DATA_DIR
         os.makedirs(USER_DATA_DIR)
-        shutil.copyfile(os.path.join(SCSPELL_DATA_DIR, 'keywords.txt'), KEYWORDS_LOC)
+        shutil.copyfile(os.path.join(SCSPELL_DATA_DIR, 'keywords.txt'), KEYWORDS_DEFAULT_LOC)
+
+    ENGLISH_LOC  = os.path.join(SCSPELL_DATA_DIR, 'english-words.txt')
+    KEYWORDS_LOC = locate_keyword_dict()
+
     db = shelve.open(os.path.join(USER_DATA_DIR, 'custom.shelf'))
     try:
         with contextlib.nested(
