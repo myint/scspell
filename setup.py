@@ -55,7 +55,7 @@ setup(
 
     packages=['scspell'],
     scripts=['scspell.py'],
-    data_files=['scspell/data/english-words.txt', 'scspell/data/keywords.txt'],
+    package_data={'scspell' : ['data/*']},
 
     cmdclass={
         'install_scripts' : ScriptInstaller,
