@@ -1,7 +1,26 @@
-#!/usr/bin/env python
+############################################################################
+# scspell
+# Copyright (C) 2009 Paul Pelzl
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+############################################################################
+
+
 """
 scspell -- an interactive, conservative spell-checker for source code.
 """
+
 
 from __future__ import with_statement
 import contextlib, os, re, sys, shelve, shutil
@@ -11,6 +30,7 @@ import portable
 from corpus import SetCorpus, DictStoredSetCorpus, FileStoredCorpus, PrefixMatchingCorpus
 
 
+VERSION = '0.9.0'
 CONTEXT_SIZE  = 4       # Size of context printed upon request
 LEN_THRESHOLD = 3       # Subtokens shorter than 4 characters are likely to be abbreviations
 CTRL_C = '\x03'         # Special key codes returned from getch()
