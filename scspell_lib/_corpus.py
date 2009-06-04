@@ -27,143 +27,258 @@ from __future__ import with_statement
 from bisect import bisect_left
 
 
+# String identifying natural language dictionary
+CATEGORY_NATURAL = 'NATURAL'
+
+
+class ParsingError(Exception):
+    """An error occurred when parsing the dictionary file."""
+
+
 class Corpus(object):
     """Base class for various types of (textual) dictionary-like objects."""
 
-    def __init__(self):
-        self._dirty = False
+    def __init__(self, name, extensions):
+        self._dirty      = False
+        self._name       = name
+        self._extensions = extensions
 
     def _mark_dirty(self):
         self._dirty = True
 
-    def _mark_clean(self):
-        self._dirty = False
-
-    def _is_dirty(self):
+    def is_dirty(self):
         return self._dirty
 
-    def match(self, word):
-        """Returns True if the word matches an entry in this Corpus.
+    def get_name(self):
+        """Return the name of this Corpus."""
+        return self._name
+
+    def match(self, token):
+        """Return True if the token is present in this Corpus.
         The matching method is Corpus-specific.
         """
         raise NotImplementedError
 
-    def add(self, word):
-        """Adds the specified word to this Corpus."""
+    def add(self, token):
+        """Add the specified token to this Corpus."""
         raise NotImplementedError
 
-    def close(self):
-        """Closes this corpus, saving its state as appropriate."""
+    def write(self, f):
+        """Write the contents of this Corpus to f, a file-like object."""
         raise NotImplementedError
+
+    def _write_header(self, f):
+        """Writes the corpus header to f, a file-like object."""
+        f.write(self.get_name() + ': ' + ', '.join(extensions))
+
+
+class ExactMatchCorpus(Corpus):
+    """A token matches against an ExactMatchCorpus iff it is present in the corpus."""
+
+    def __init__(self, name, extensions, tokens):
+        """Construct an instance from a sequence of tokens, giving it
+        the specified category name and list of extensions.
+        """
+        Corpus.__init__(self, name, extensions)
+        self._tokens = set(tokens)
+
+    def match(self, token):
+        """Return True if the token is present in this Corpus."""
+        return token in self._tokens
+
+    def add(self, token):
+        """Add the specified token to this Corpus."""
+        if token not in self._tokens:
+            self._tokens.add(token)
+            self._mark_dirty()
+
+    def write(self, f):
+        """Write the contents of this Corpus to f, a file-like object."""
+        self._write_header(f)
+        for token in sorted(list(self._tokens)):
+            f.write(token + '\n')
+
+
+class PrefixMatchCorpus(Corpus):
+    """A token matches against a PrefixMatchCorpus iff the token is a prefix of
+    any item in the corpus.
+    """
+
+    def __init__(self, name, extensions, tokens):
+        """Construct an instance from a sequence of tokens, giving it
+        the specified category name and list of extensions.
+        """
+        Corpus.__init__(self, name, extensions)
+        self._tokens = sorted(tokens)
+
+    def match(self, token):
+        """Return True if the token is a prefix of an item in this Corpus."""
+        insertion_point = bisect_left(self._tokens, token)
+        if insertion_point < len(self._tokens):
+            return self._tokens[insertion_point].startswith(token)
+        else:
+            return False
+
+    def add(self, token):
+        """Add the specified token to this Corpus."""
+        insertion_point = bisect_left(self._tokens, token)
+        if insertion_point >= len(self._tokens) or self._tokens[insertion_point] != token:
+            self._tokens.insert(insertion_point, token)
+            self._mark_dirty()
+
+    def write(self, f):
+        """Write the contents of this Corpus to f, a file-like object."""
+        self._write_header(f)
+        for token in self._tokens:
+            f.write(token + '\n')
+
+
+class CorporaFile(object):
+    """The CorporaFile manages a single file containing multiple corpora."""
+
+    def __init__(self, filename):
+        """Construct an instance from the file with the given filename."""
+        self._filename = filename
+        try:
+            with open(filename, 'rb') as f:
+                lines = [line.strip('\r\n') for line in f.readlines()]
+            return self._parse(lines)
+        except IOError, e:
+            print 'Warning: unable to read dictionary file "%s". (Reason: %s)' % (filename, str(e))
+            print 'Continuing with empty dictionary.\n'
+            self._natural     = PrefixMatchCorpus([])
+            self._programming = []
+        except ParsingError, e:
+            print 'Error while parsing dictionary file "%s": %s' % (filename, str(e))
+            sys.exit(1)
+
+    def match(self, token, filename):
+        """Return true if the token matches any of the applicable corpora."""
+        if self._natural.match(token):
+            return True
+        (_, ext) = os.path.splitext(filename)
+        try:
+            corpus = self._extensions[ext]
+            return corpus.match(token)
+        except KeyError:
+            return False
+
+    def add_natural(self, token):
+        """Add the token to the natural language corpus."""
+        self._natural.add(token)
+
+    def add_programming(self, token, filename):
+        """Add the token to a programming language-specific corpus.
+
+        Returns True if the add was successful, False if there is no corpus
+        with a matching filename extension.
+        """
+        (_, ext) = os.path.splitext(filename)
+        try:
+            corpus = self._extensions[ext]
+            corpus.add(token)
+            return True
+        except KeyError:
+            return False
+        
+    def close(self):
+        """Update the corpus file iff the contents were modified."""
+        dirty = self._natural.is_dirty()
+        for corpus in self._programming:
+            dirty = dirty or corpus.is_dirty()
+        if dirty:
+            try:
+                with open(filename, 'wb') as f:
+                    self._natural.write(f)
+                    for corpus in self._programming:
+                        corpus.write(f)
+            except IOError, e:
+                print ('Warning: unable to write dictionary file "%s". (Reason: %s)' %
+                        (filename, str(e)))
+
+    def _parse(self, lines):
+        """Parses the lines into a set of corpora."""
+        # Empty defaults
+        self._natural     = None
+        self._programming = []
+        self._extensions  = {}
+
+        offset = 0
+        while offset < len(lines):
+            offset = self._parse_corpus(lines, offset)
+    
+    def _parse_corpus(self, lines, offset):
+        """Parses a single corpus starting at offset within lines."""
+        category, extensions = self._parse_header_line(lines[offset], offset+1)
+        if category == '':
+            raise ParsingError('Dictionary header on line %u must have nonempty category name.' %
+                    offset+1)
+        elif category == CATEGORY_NATURAL:
+            if self._natural is not None:
+                raise ParsingError('Duplicate dictionary category "%s" on line %u.' %
+                        (CATEGORY_NATURAL, offset+1))
+            if extensions != []:
+                raise ParsingError('Dictionary category "%s" on line %u should have no extensions.' %
+                        (CATEGORY_NATURAL, offset+1))
+            (offset, tokens) = self._read_corpus_tokens(offset, lines)
+            self._natural = PrefixMatchCorpus(CATEGORY_NATURAL, tokens)
+            return offset
+        else:
+            if extensions == []:
+                extensions = ['']
+            if category in [corpus.get_name() for corpus in self._programming]:
+                raise ParsingError('Duplicate category name "%s" in header on line %u.' %
+                        (category, offset+1))
+            for ext in extensions:
+                if self._extensions.has_key(ext):
+                    raise ParsingError('Duplicate extension "%s" in header on line %u.' %
+                        (ext, offset+1))
+            (offset, tokens) = self._read_corpus_tokens(offset, lines)
+            corpus = ExactMatchCorpus(category, tokens)
+            self._programming.append(corpus)
+            for ext in extensions:
+                self._extensions[ext] = corpus
+            return offset
+
+    def _parse_header_line(self, line, line_num):
+        """Parse a dictionary header line.
+
+        Headers take the form
+
+            <category>: <comma-separated list of extensions>
+
+        The return value is the tuple (category, extension list).
+        """
+        try:
+            (raw_category, raw_extensions) = line.split(':')
+        except ValueError:
+            raise ParsingError('Syntax error in header on line %u.' % line_num)
+
+        category   = raw_category.strip()
+        extensions = [ext.strip() for ext in raw_extensions.split(',')]
+        for ext in extensions:
+            if not ext.startswith('.'):
+                raise ParsingError('Extension "%s" on line %u does not begin with a period.' % 
+                        (ext, line_num)
+        return category, extensions
+
+    def _read_corpus_tokens(self, offset, lines):
+        """Read the set of tokens for the corpus which begins at the given offset.
+
+        Returns the tuple (next offset, tokens).
+        """
+        tokens = []
+        for i, line in enumerate(lines[offset+1:]):
+            if ':' in line:
+                return (offset + i + 1, tokens)
+            else:
+                tokens.append(line)
+        return len(lines), tokens
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_value, exc_tb):
         self.close()
         return False
-
-
-class FileStoredCorpus(Corpus):
-    """A FileStoredCorpus is a Corpus stored as a list of words in an ordinary file."""
-
-    def __init__(self, filename):
-        """Loads the word list from the specified file."""
-        Corpus.__init__(self)
-        self._filename = filename
-        try:
-            with open(filename, 'rb') as f:
-                self._words = [word.strip('\r\n') for word in f.readlines()]
-                # The word list *should* be sorted already, but someone could have
-                # corrupted it...
-                self._words.sort()
-        except IOError:
-            print 'Warning: can\'t read dictionary file "%s".' % filename
-            print 'Continuing with empty dictionary.'
-            print
-            self._words = []
-
-
-    def match(self, word):
-        """Returns True if the word is present in this Corpus."""
-        insertion_point = bisect_left(self._words, word)
-        if insertion_point < len(self._words):
-            return self._words[insertion_point] == word
-        else:
-            return False
-
-    def add(self, word):
-        """Adds the specified word to this Corpus."""
-        insertion_point = bisect_left(self._words, word)
-        if insertion_point >= len(self._words) or self._words[insertion_point] != word:
-            self._words.insert(insertion_point, word)
-            self._mark_dirty()
-
-    def close(self):
-        """Closes this corpus, writing back any updates."""
-        if self._is_dirty():
-            try:
-                with open(self._filename, 'wb') as f:
-                    f.writelines([w + '\n' for w in self._words])
-                self._mark_clean()
-            except IOError:
-                print 'Warning: unable to write dictionary file "%s".' % self._filename
-
-
-class SetCorpus(Corpus):
-    """A SetCorpus is a Corpus that uses matching by equality."""
-
-    def __init__(self):
-        Corpus.__init__(self)
-        self._words = set()
-
-    def match(self, word):
-        """Returns True if the word is present in this Corpus."""
-        return word in self._words
-
-    def add(self, word):
-        """Adds the specified word to this Corpus."""
-        if word not in self._words:
-            self._words.add(word)
-            self._mark_dirty()
-
-    def close(self):
-        pass
-
-
-class DictStoredSetCorpus(SetCorpus):
-    """A DictStoredCorpus is a Corpus stored as a set() in a dictionary entry."""
-
-    def __init__(self, db, key):
-        """Loads the corpus from dictionary <db>, using the <key> for lookup."""
-        Corpus.__init__(self)
-        self._db  = db
-        self._key = key
-        try:
-            self._words = db[key]
-        except KeyError:
-            self._words = set()
-
-    def close(self):
-        """Closes this corpus, writing back any updates."""
-        if self._is_dirty():
-            self._db[self._key] = self._words
-            self._mark_clean()
-
-
-class PrefixMatchingCorpus(FileStoredCorpus):
-    """A PrefixMatchingCorpus is based on a sorted list of words.  A
-    token matches against the word list if the token is a prefix of any
-    word in the list."""
-
-    def match(self, word):
-        """Returns True if the word is a prefix of any word in this
-        dictionary.
-        """
-        insertion_point = bisect_left(self._words, word)
-        if insertion_point < len(self._words):
-            return self._words[insertion_point].startswith(word)
-        else:
-            return False
-
 
