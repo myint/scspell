@@ -21,7 +21,7 @@
 portable -- contains functions for hiding differences between platforms.
 """
 
-import os
+import os, sys
 
 # Cross-platform version of getch()
 try:
@@ -30,7 +30,7 @@ try:
         return msvcrt.getch()
 
 except ImportError:
-    import sys, tty, termios
+    import tty, termios
     def getch():
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
