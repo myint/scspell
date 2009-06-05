@@ -166,7 +166,8 @@ def handle_new_filetype(extension, dicts):
     """
     while True:
         descr = raw_input("""\
-         Enter a descriptive name for the file-type (e.g. name of programming language): """).strip()
+         Enter a descriptive name for the file-type (e.g. name of programming
+         language): """).strip()
         if descr == '':
             return False
 
@@ -184,37 +185,36 @@ def handle_new_filetype(extension, dicts):
         return True
 
 
-def handle_new_extension(filename, dicts):
+def handle_new_extension(ext, dicts):
     """Handle creation of a new file-type extension.
 
     :returns: True if new extension was registered, False if canceled.
     """
-    (_, ext) = os.path.splitext(filename)
-    ext = ext.lower()
-    
     print ("""\
-         Extension "%s" is not registered.  With which file-type should "%s" be associated?""" %
-            (ext, ext))
+         Extension "%s" is not registered.  With which file-type should "%s"
+         be associated?""" % (ext, ext))
 
     type_format = """\
             %3u: %s"""
-    print type_format % (0, '(Cancel)')
-    print type_format % (1, '(Create new file-type)')
-    for i, ft in enumerate(dicts.get_filetypes()):
-        print type_format % (i+2, ft)
+    filetypes = dicts.get_filetypes()
+    for i, ft in enumerate(filetypes):
+        print type_format % (i, ft)
+    print type_format % (len(filetypes), '(Create new file-type)')
 
     while True:
+        selection = raw_input("""\
+         Enter number of desired file-type: """)
+        if selection == '':
+            return False
+
         try:
-            selection = int(raw_input("""\
-         Enter number of desired file-type: """))
+            selection = int(selection)
         except ValueError:
             continue
-        if selection == 0:
-            return False
-        elif selection == 1:
+        if selection == len(filetypes):
             return handle_new_filetype(ext, dicts)
-        elif selection - 2 < len(ft):
-            dicts.register_extension(ext, filetype)
+        elif selection >= 0 and selection < len(filetypes):
+            dicts.register_extension(ext, filetypes[selection])
             return True
 
 
@@ -229,16 +229,29 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
     :type  dicts: CorporaFile
     :returns: None
     """
+    (_, ext) = os.path.splitext(filename.lower())
+
     if file_id is None:
-        prompt = """\
-   Subtoken '%s':
-      (i)gnore, add to (p)rogramming language dictionary, or add to (n)atural language
-      dictionary? [i]"""
+        if ext != '':
+            prompt = """\
+      Subtoken '%s':
+         (i)gnore, add to (p)rogramming language dictionary, or add to
+         (n)atural language dictionary? [i]"""
+        else:
+            prompt = """\
+      Subtoken '%s':
+         (i)gnore or add to (n)atural language dictionary? [i]"""
     else:
-        prompt = """\
-   Subtoken '%s':
-      (i)gnore, add to (p)rogramming language dictionary, add to (f)ile-specific
-      dictionary, or add to (n)atural language dictionary? [i]"""
+        if ext != '':
+            prompt = """\
+      Subtoken '%s':
+         (i)gnore, add to (p)rogramming language dictionary, add to (f)ile-
+         -specific dictionary, or add to (n)atural language dictionary? [i]"""
+        else:
+            prompt = """\
+      Subtoken '%s':
+         (i)gnore, add to (f)ile-specific dictionary, or add to (n)atural
+         language dictionary? [i]"""
 
     for subtoken in unmatched_subtokens:
         while True:
@@ -249,18 +262,18 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
                 sys.exit(1)
             elif ch in ('i', '\r', '\n'):
                 break
-            elif ch == 'p':
-                if dicts.add_filetype(subtoken, filename):
+            elif ext != '' and ch == 'p':
+                if dicts.add_by_extension(subtoken, ext):
                     break
                 else:
-                    if handle_new_extension(filename, dicts) and \
-                            dicts.add_filetype(subtoken, filename):
+                    if handle_new_extension(ext, dicts) and \
+                            dicts.add_by_extension(subtoken, ext):
                         break
             elif ch == 'n':
                 dicts.add_natural(subtoken)
                 break
             elif (file_id is not None) and (ch == 'f'):
-                dicts.add_fileid(subtoken, file_id)
+                dicts.add_by_fileid(subtoken, file_id)
                 break
 
 
@@ -285,7 +298,8 @@ def handle_failed_check(match_desc, filename, file_id, unmatched_subtokens, dict
     match_regex = re.compile(re.escape(match_desc.get_token()))
     while True:
         print """\
-   (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or show (c)ontext? [i]"""
+   (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
+   show (c)ontext? [i]"""
         ch = _portable.getch()
         if ch in (CTRL_C, CTRL_D, CTRL_Z):
             print 'User abort.'

@@ -74,7 +74,8 @@ class Corpus(object):
     def add_extension(self, extension):
         """Append the extension to the list of extensions associated with this dictionary."""
         assert self._dict_type == DICT_TYPE_FILETYPE
-        self._extensions.append(extension)
+        (_, extensions) = self._metadata
+        extensions.append(extension)
 
     def match(self, token):
         """Return True if the token is present in this Corpus.
@@ -200,7 +201,7 @@ class CorporaFile(object):
         if self._natural_dict.match(token):
             return True
 
-        (_, ext) = os.path.splitext(filename)
+        (_, ext) = os.path.splitext(filename.lower())
         try:
             corpus = self._extensions[ext]
             mutter(VERBOSITY_DEBUG, '(Matching against filetype "%s".)' % corpus.get_name())
@@ -226,24 +227,24 @@ class CorporaFile(object):
         self._natural_dict.add(token)
 
 
-    def add_filetype(self, token, filename):
-        """Add the token to a programming language-specific corpus.
+    def add_by_extension(self, token, extension):
+        """Add the token to a programming language-specific corpus associated with the
+        extension.
 
         Returns True if the add was successful, False if there is no corpus
         with a matching filename extension.
         """
-        (_, ext) = os.path.splitext(filename)
         try:
-            corpus = self._extensions[ext]
+            corpus = self._extensions[extension]
             mutter(VERBOSITY_DEBUG, '(Adding to filetype "%s".)' % corpus.get_name())
             corpus.add(token)
             return True
         except KeyError:
-            mutter(VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % ext)
+            mutter(VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % extension)
             return False
         
     
-    def add_fileid(self, token, file_id):
+    def add_by_fileid(self, token, file_id):
         """Add the token to a file-specific corpus.  If there is no corpus
         for the given file_id, a new one is created.
         """
@@ -281,7 +282,7 @@ class CorporaFile(object):
     def register_extension(self, extension, type_descr):
         """Associate the extension with the file-type that has the given description."""
         assert extension not in self._extensions
-        for corpus in self._filetype_dicts.get_name():
+        for corpus in self._filetype_dicts:
             if corpus.get_name() == type_descr:
                 self._extensions[extension] = corpus
                 corpus.add_extension(extension)
@@ -402,7 +403,7 @@ class CorporaFile(object):
                     (DICT_TYPE_FILETYPE, line_num))
 
             descr      = raw_descr.strip()
-            extensions = [ext.strip() for ext in raw_extensions.split(',')]
+            extensions = [ext.strip().lower() for ext in raw_extensions.split(',')]
             extensions = [ext for ext in extensions if ext != '']
             
             if descr == '':
