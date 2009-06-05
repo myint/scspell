@@ -1,5 +1,7 @@
-"scspell-english-dict.txt" was derived from SCOWL, which is distributed
-under the following set of licenses.
+
+The English dictionary portion of scspell_lib/data/dictionary.txt was
+derived from SCOWL, which is distributed under the following set of
+licenses.
 
 ----------------------------------------------------------------------------
 

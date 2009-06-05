@@ -1,36 +1,34 @@
 **scspell** is a spell checker for source code.  It does not try to be
-particularly smart--rather, it does the simplest thing that can possibly
-work:
+particularly smart--rather, it does the simplest thing that can possibly work:
 
     1. All alphanumeric strings (strings of letters, numbers, and
        underscores) are spell-checked tokens.
-    2. Each token is split into one or more subtokens.  Underscores and
-       digits always divide tokens, and capital letters will begin new
-       subtokens.  In other words, ``some_variable`` and
-       ``someVariable`` will both generate the subtoken list {``some``,
-       ``variable``}.
-    3. All subtokens longer than three characters are matched against a
-       set of dictionaries, and a match failure prompts the user for
-       action.  When matching against the included English dictionary,
-       *prefix matching* is employed; this choice permits the use of
-       truncated words like ``dict`` as subtokens.
+    2. Each token is split into one or more subtokens.  Underscores and digits
+       always divide tokens, and capital letters will begin new subtokens.  In
+       other words, ``some_variable`` and ``someVariable`` will both generate
+       the subtoken list {``some``, ``variable``}.
+    3. All subtokens longer than three characters are matched against a set of
+       dictionaries, and a match failure prompts the user for action.  When
+       matching against the included English dictionary, *prefix matching* is
+       employed; this choice permits the use of truncated words like ``dict``
+       as valid subtokens.
 
-When applied to code written in a modern programming language using
-typical naming conventions, this algorithm will catch many errors
-without an annoying false positive rate.
+When applied to code written in most popular programming languages while using
+typical naming conventions, this algorithm will catch many errors without an
+annoying false positive rate.
 
-**scspell** matches subtokens against four distinct dictionaries:
+In an effort to catch more spelling errors, **scspell** is able to check each
+file against a set of dictionary words selected *specifically for that file*.  Up
+to three different sub-dictionaries may be searched for any given file:
 
-    1. A read-only (American) English dictionary is provided with
-       **scspell**.
-    2. A programming language keyword dictionary is provided with
-       **scspell**.  New keywords may be added to the dictionary,
-       and a team of developers may share a common keyword dictionary.
-    3. A custom dictionary is created at runtime for each user, so each
-       user may exclude certain words without affecting other developers.
-    4. A custom per-file dictionary is created for each user for each
-       new file, so that special keywords may be excluded on a per-file
-       basis.
+    1. A natural language dictionary.  (**scspell** provides an American
+       English dictionary as the default.)
+    2. A programming language-specific dictionary, intended to contain
+       oddly-spelled keywords and APIs associated with that language.
+       (**scspell** provides small default dictionaries for a number of popular
+       programming languages.)
+    3. A file-specific dictionary, intended to contain uncommon strings which
+       are not likely to be found in more than a handful of unique files.
 
 Usage
 =====
@@ -39,7 +37,7 @@ To begin the spell checker, run ::
 
     $ scspell source_file1 source_file2 ...
 
-For each match failure, you will see output much like this::
+For each spell check failure, you will see output much like this::
 
     filename.c:27: Unmatched 'someMispeldVaraible' -> {mispeld, varaible}
     
@@ -49,26 +47,25 @@ of ``filename.c``, and it contains subtokens "``mispeld``" and
 be prompted for an action to take:
     
     (i)gnore
-        Skip to the next match failure, without taking any action.
+        Skip to the next unmatched token, without taking any action.
 
     (I)gnore all
         Skip over this token every time it is encountered, for the
         remainder of this spell check session.
         
     (r)eplace
-        Prompt the user for some text to use as a replacement for this
-        token.
+        Enter some text to use as a replacement for this token, and replace
+        only the token at this point in the file.
 
     (R)eplace all
-        Prompt the user for some text to use as a replacement for this
-        token, and replace every occurrence of the token until the end
-        of the current file.
+        Enter some text to use as a replacement for this token, and replace
+        every occurrence of the token until the end of the current file.
 
     (a)dd to dictionary
         Add one or more tokens to one of the dictionaries (see below).
 
     show (c)ontext
-        Print out some lines of context surrounding this match failure.
+        Print out some lines of context surrounding the unmatched token.
 
 If you accidentally select a replacement operation, enter an empty
 string to cancel.
@@ -79,34 +76,56 @@ prompted with the following options for every subtoken:
     (i)gnore
         Skip to the next subtoken, without taking any action.
 
-    add to (c)ustom dictionary
-        Adds this subtoken to your custom dictionary.
+    add to (p)rogramming language dictionary
+        Adds this subtoken to the dictionary associated with the
+        programming language of the current file.  **scspell** uses the
+        file extension to determine the language, so you will only
+        see this option for files which have an extension.
 
-    add to per-(f)ile custom dictionary
-        Adds this subtoken to your custom dictionary which is associated
-        with the current file.
+    add to (f)ile-specific dictionary
+        Adds this subtoken to the dictionary associated with the
+        current file.  **scspell** identifies unique files by scanning
+        for an embedded ID string, so you will only see this option
+        for files which have such an ID.  See `Creating File IDs`_
+        for details.
 
-    add to (k)eyword dictionary
-        Adds this subtoken to the programming language keyword
-        dictionary (which may be shared with other developers).
+    add to (n)atural language dictionary
+        Adds this subtoken to the natural language dictionary.
 
 
-Sharing a Keyword Dictionary
+.. _`Creating File IDs`:
+
+Creating File IDs
+-----------------
+
+If you would like **scspell** to be able to uniquely identify a file, thus
+enabling the creation of a file-specific dictionary, then you must insert a
+unique ID somewhere in the contents of that file.  **scspell** will scan each
+file for a string of the following form::
+
+    scspell-id: <unique ID>
+
+The unique ID must consist only of letters, numbers, underscores, and dashes.
+For best results, use a tool like ``uuidgen`` (Unix) or ``guidgen`` (Windows)
+to generate a unique ID for each file of interest.
+
+(Most likely you will want to place a file's unique ID inside a source code comment.)
+
+
+Sharing a Dictionary
 ----------------------------
 
-A team of developers working on the same source tree may wish to share a
-common keyword dictionary.  You can set the location of a shared keyword
-dictionary by executing ::
+A team of developers working on the same source tree may wish to share a common
+dictionary.  You can set the location of a shared dictionary by executing ::
 
-    $ scspell --set-keyword-dictionary=/path/to/dictionary_file.txt
+    $ scspell --set-dictionary=/path/to/dictionary_file.txt
 
-The keyword dictionary is formatted as a simple newline-separated list of
-words, so it can easily be managed by a version control system if
-desired.
+The dictionary is formatted as a simple newline-separated list of words, so it
+can easily be managed by a version control system if desired.
 
-The current keyword dictionary can be saved to a file by executing ::
+The current dictionary can be saved to a file by executing ::
 
-    $ scspell --export-keyword-dictionary=/path/to/dictionary_file.txt
+    $ scspell --export-dictionary=/path/to/output_file.txt
 
 
 Installation
@@ -136,15 +155,14 @@ Public License; see ``COPYING.txt`` for details.
 
 The English dictionary distributed with scspell is derived from the
 `SCOWL word lists <http://wordlist.sourceforge.net>`_ .  See
-``SCOWL-LICENSE.txt`` for the myriad licenses that apply to that file.
+``SCOWL-LICENSE.txt`` for the myriad licenses that apply to that dictionary.
 
 
 Bugs, etc.
 ============
 
 **scspell** is `hosted on Launchpad <http://launchpad.net/scspell>`_; 
-this would be a great place to file bug reports and feature requests or
-track development via `bzr <http://bazaar-vcs.org>`_.
+this would be a great place to file bug reports and feature requests or track
+development via `bzr <http://bazaar-vcs.org>`_.  If that's not your style, just
+send an email to Paul Pelzl <``pelzlpj at gmail dot com``> .
 
-If that's not your style, just send an email to
-Paul Pelzl <pelzlpj at gmail dot com> .
