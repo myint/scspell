@@ -39,10 +39,10 @@ CTRL_C = '\x03'         # Special key codes returned from getch()
 CTRL_D = '\x04'
 CTRL_Z = '\x1a'
 
-USER_DATA_DIR        = _portable.get_data_dir('scspell')
-KEYWORDS_DEFAULT_LOC = os.path.join(USER_DATA_DIR, 'keywords.txt')
-SCSPELL_DATA_DIR     = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data'))
-SCSPELL_CONF         = os.path.join(USER_DATA_DIR, 'scspell.conf')
+USER_DATA_DIR    = _portable.get_data_dir('scspell')
+DICT_DEFAULT_LOC = os.path.join(USER_DATA_DIR, 'dictionary.txt')
+SCSPELL_DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data'))
+SCSPELL_CONF     = os.path.join(USER_DATA_DIR, 'scspell.conf')
 
 # Treat anything alphanumeric as a token of interest
 token_regex = re.compile(r'\w+')
@@ -416,20 +416,20 @@ def verify_user_data_dir():
     from scratch.
     """
     if not os.path.exists(USER_DATA_DIR):
-        print 'Creating new personal dictionaries in %s .\n' % USER_DATA_DIR
+        print 'Creating new personal dictionary in %s .\n' % USER_DATA_DIR
         os.makedirs(USER_DATA_DIR)
-        shutil.copyfile(os.path.join(SCSPELL_DATA_DIR, 'keywords.txt'), KEYWORDS_DEFAULT_LOC)
+        shutil.copyfile(os.path.join(SCSPELL_DATA_DIR, 'dictionary.txt'), DICT_DEFAULT_LOC)
 
 
-def locate_keyword_dict():
-    """Load the location of the keyword dictionary.  This is either
-    the default location, or an override specified in 'scspell.conf'.
+def locate_dictionary():
+    """Load the location of the dictionary file.  This is either the default
+    location, or an override specified in 'scspell.conf'.
     """
     verify_user_data_dir()
     try:
         f = open(SCSPELL_CONF, 'r')
     except IOError:
-        return KEYWORDS_DEFAULT_LOC
+        return DICT_DEFAULT_LOC
 
     config = ConfigParser.RawConfigParser()
     try:
@@ -441,24 +441,24 @@ def locate_keyword_dict():
         f.close()
 
     try:
-        loc = config.get('Locations', 'keyword_dictionary')
+        loc = config.get('Locations', 'dictionary')
         if os.path.isabs(loc):
             return loc
         else:
-            print ('Error while parsing "%s": keyword_dictionary must be an absolute path.' %
+            print ('Error while parsing "%s": dictionary must be an absolute path.' %
                     SCSPELL_CONF)
             sys.exit(1)
     except ConfigParser.Error:
-        return KEYWORDS_DEFAULT_LOC
+        return DICT_DEFAULT_LOC
 
 
-def set_keyword_dict(filename):
-    """Set the location of the keyword dictionary to the specified filename.
+def set_dictionary(filename):
+    """Set the location of the dictionary to the specified filename.
 
     :returns: None
     """
     if not os.path.isabs(filename):
-        print 'Error: keyword dictionary location must be an absolute path.'
+        print 'Error: dictionary location must be an absolute path.'
         sys.exit(1)
 
     verify_user_data_dir()
@@ -473,18 +473,18 @@ def set_keyword_dict(filename):
         config.add_section('Locations')
     except ConfigParser.DuplicateSectionError:
         pass
-    config.set('Locations', 'keyword_dictionary', filename)
+    config.set('Locations', 'dictionary', filename)
 
     with open(SCSPELL_CONF, 'w') as f:
         config.write(f)
 
 
-def export_keyword_dict(filename):
+def export_dictionary(filename):
     """Export the current keyword dictionary to the specified file.
 
     :returns: None
     """
-    shutil.copyfile(locate_keyword_dict(), filename)
+    shutil.copyfile(locate_dictionary(), filename)
 
     
 def spell_check(source_filenames):
@@ -492,10 +492,8 @@ def spell_check(source_filenames):
     
     :returns: None
     """
-    DICT_LOC = os.path.join(SCSPELL_DATA_DIR, 'english-words.txt')
-
     verify_user_data_dir()
-    with CorporaFile(DICT_LOC) as dicts:
+    with CorporaFile(locate_dictionary()) as dicts:
         ignores = set()
         for f in source_filenames:
             spell_check_file(f, dicts, ignores)
