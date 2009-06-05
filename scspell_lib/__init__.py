@@ -171,7 +171,7 @@ def handle_add(unmatched_subtokens, filename, dicts):
             elif ch in ('i', '\r', '\n'):
                 break
             elif ch == 'p':
-                dicts.add_programming(subtoken, filename)
+                dicts.add_filetype(subtoken, filename)
                 break
             elif ch == 'n':
                 dicts.add_natural(subtoken)

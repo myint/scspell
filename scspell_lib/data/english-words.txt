@@ -89905,3 +89905,6 @@ zygote
 zygotes
 zygotic
 zymurgy
+FILETYPE: C/C++; .h, .hh, .hpp, .hxx, .c, .cc, .cpp, .cxx
+memcpy
+strlen
