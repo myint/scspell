@@ -300,11 +300,13 @@ class CorporaFile(object):
         if dirty:
             try:
                 with open(self._filename, 'wb') as f:
-                    self._natural_dict.write(f)
                     for corpus in self._filetype_dicts:
                         corpus.write(f)
                     for corpus in self._fileid_dicts:
                         corpus.write(f)
+                    # Natural language dict goes at the end for readability... it is
+                    # typically much bigger than the other dictionaries
+                    self._natural_dict.write(f)
             except IOError, e:
                 print ('Warning: unable to write dictionary file "%s". (Reason: %s)' %
                         (filename, str(e)))
