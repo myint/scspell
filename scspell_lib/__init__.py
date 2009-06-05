@@ -166,8 +166,7 @@ def handle_new_filetype(extension, dicts):
     """
     while True:
         descr = raw_input("""\
-         Enter a descriptive name for the file-type (e.g. name of programming
-         language): """).strip()
+         Enter a descriptive name for the programming language: """).strip()
         if descr == '':
             return False
 
@@ -191,15 +190,15 @@ def handle_new_extension(ext, dicts):
     :returns: True if new extension was registered, False if canceled.
     """
     print ("""\
-         Extension "%s" is not registered.  With which file-type should "%s"
-         be associated?""" % (ext, ext))
+         Extension "%s" is not registered.  With which programming language
+         should "%s" be associated?""" % (ext, ext))
 
     type_format = """\
             %3u: %s"""
     filetypes = dicts.get_filetypes()
     for i, ft in enumerate(filetypes):
         print type_format % (i, ft)
-    print type_format % (len(filetypes), '(Create new file-type)')
+    print type_format % (len(filetypes), '(Create new language file-type)')
 
     while True:
         selection = raw_input("""\
