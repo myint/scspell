@@ -244,19 +244,19 @@ class CorporaFile(object):
         
     
     def add_fileid(self, token, file_id):
-        """Add the token to a file-specific corpus.
-
-        :returns: True if the add was successful, False if there is no corpus
-                  with a matching filename extension.
+        """Add the token to a file-specific corpus.  If there is no corpus
+        for the given file_id, a new one is created.
         """
         try:
             corpus = self._fileids[file_id]
             mutter(VERBOSITY_DEBUG, '(Adding to file-id "%s".)' % file_id)
             corpus.add(token)
-            return True
         except KeyError:
-            mutter(VERBOSITY_DEBUG, '(No file-id match for "%s".)' % file_id)
-            return False
+            mutter(VERBOSITY_DEBUG, '(No file-id match for "%s"; creating new.)' % file_id)
+            corpus = ExactMatchCorpus(DICT_TYPE_FILEID, file_id, [])
+            self._fileid_dicts.append(corpus)
+            self._fileids[file_id] = corpus
+            corpus.add(token)
 
 
     def get_filetypes(self):
@@ -294,11 +294,15 @@ class CorporaFile(object):
         dirty = self._natural_dict.is_dirty() if self._natural_dict is not None else False
         for corpus in self._filetype_dicts:
             dirty = dirty or corpus.is_dirty()
+        for corpus in self._fileid_dicts:
+            dirty = dirty or corpus.is_dirty()
         if dirty:
             try:
                 with open(self._filename, 'wb') as f:
                     self._natural_dict.write(f)
                     for corpus in self._filetype_dicts:
+                        corpus.write(f)
+                    for corpus in self._fileid_dicts:
                         corpus.write(f)
             except IOError, e:
                 print ('Warning: unable to write dictionary file "%s". (Reason: %s)' %
@@ -346,6 +350,7 @@ class CorporaFile(object):
             self._fileids[metadata] = corpus
             mutter(VERBOSITY_DEBUG, '(Loaded file-id dictionary "%s" with %u tokens.)' %
                 (metadata, len(tokens)))
+            return offset
 
         raise AssertionError('Unknown dict_type "%s".' % dict_type)
 
