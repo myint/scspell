@@ -159,6 +159,65 @@ def decompose_token(token):
     return [st.lower() for st in subtokens if st != '']
     
 
+def handle_new_filetype(extension, dicts):
+    """Handle creation of a new file-type for the given extension.
+    
+    :returns: True if created, False if canceled.
+    """
+    while True:
+        descr = raw_input("""\
+         Enter a descriptive name for the file-type (e.g. name of programming language): """).strip()
+        if descr == '':
+            return False
+
+        if (':' in descr) or (';' in descr):
+            print """\
+         Illegal characters in descriptive name."""
+            continue
+
+        if descr in dicts.get_filetypes():
+            print """\
+         That name is already in use."""
+            continue
+
+        dicts.new_filetype(descr, [extension])
+        return True
+
+
+def handle_new_extension(filename, dicts):
+    """Handle creation of a new file-type extension.
+
+    :returns: True if new extension was registered, False if canceled.
+    """
+    (_, ext) = os.path.splitext(filename)
+    ext = ext.lower()
+    
+    print ("""\
+         Extension "%s" is not registered.  With which file-type should "%s" be associated?""" %
+            (ext, ext))
+
+    type_format = """\
+            %3u: %s"""
+    print type_format % (0, '(Cancel)')
+    print type_format % (1, '(Create new file-type)')
+    for i, ft in enumerate(dicts.get_filetypes()):
+        print type_format % (i+2, ft)
+
+    while True:
+        try:
+            selection = int(raw_input("""\
+         Enter number of desired file-type: """))
+        except ValueError:
+            continue
+        if selection == 0:
+            return False
+        elif selection == 1:
+            return handle_new_filetype(ext, dicts)
+        elif selection - 2 < len(ft):
+            dicts.register_extension(ext, filetype)
+            return True
+
+
 def handle_add(unmatched_subtokens, filename, file_id, dicts):
     """Handle addition of one or more subtokens to a dictionary.
 
@@ -191,8 +250,12 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
             elif ch in ('i', '\r', '\n'):
                 break
             elif ch == 'p':
-                dicts.add_filetype(subtoken, filename)
-                break
+                if dicts.add_filetype(subtoken, filename):
+                    break
+                else:
+                    if handle_new_extension(filename, dicts) and \
+                            dicts.add_filetype(subtoken, filename):
+                        break
             elif ch == 'n':
                 dicts.add_natural(subtoken)
                 break

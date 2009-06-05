@@ -71,6 +71,11 @@ class Corpus(object):
         (_, extensions) = self._metadata
         return extensions
 
+    def add_extension(self, extension):
+        """Append the extension to the list of extensions associated with this dictionary."""
+        assert self._dict_type == DICT_TYPE_FILETYPE
+        self._extensions.append(extension)
+
     def match(self, token):
         """Return True if the token is present in this Corpus.
         The matching method is Corpus-specific.
@@ -254,6 +259,36 @@ class CorporaFile(object):
             return False
 
 
+    def get_filetypes(self):
+        """Get a list of file types with type-specific corpora."""
+        return [corpus.get_name() for corpus in self._filetype_dicts]
+
+
+    def new_filetype(self, type_descr, extensions):
+        """Add a new file-type corpus with the given description, associated with the
+        given set of extensions.
+        """
+        assert type_descr not in self.get_filetypes()
+        for ext in extensions:
+            assert ext not in self._extensions
+
+        corpus = ExactMatchCorpus(DICT_TYPE_FILETYPE, (type_descr, extensions), [])
+        self._filetype_dicts.append(corpus)
+        for ext in extensions:
+            self._extensions[ext] = corpus
+
+
+    def register_extension(self, extension, type_descr):
+        """Associate the extension with the file-type that has the given description."""
+        assert extension not in self._extensions
+        for corpus in self._filetype_dicts.get_name():
+            if corpus.get_name() == type_descr:
+                self._extensions[extension] = corpus
+                corpus.add_extension(extension)
+                return
+        raise AssertionError('type_descr "%s" not present.' % type_descr)
+
+
     def close(self):
         """Update the corpus file iff the contents were modified."""
         dirty = self._natural_dict.is_dirty() if self._natural_dict is not None else False
@@ -364,7 +399,9 @@ class CorporaFile(object):
             descr      = raw_descr.strip()
             extensions = [ext.strip() for ext in raw_extensions.split(',')]
             extensions = [ext for ext in extensions if ext != '']
-
+            
+            if descr == '':
+                raise ParsingError('File type-description on line %u is empty.' % line_num)
             for corpus in self._filetype_dicts:
                 if corpus.get_name() == descr:
                     raise ParsingError('Duplicate file-type description "%s" on line %u.' %
