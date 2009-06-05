@@ -8,7 +8,7 @@ from distutils import log
 import distutils.command.install_scripts
 import distutils.command.bdist_wininst
 
-from scspell import VERSION
+from scspell_lib import VERSION
 
 
 disable_rename = False
@@ -53,9 +53,9 @@ setup(
     author_email='pelzlpj@gmail.com',
     url='http://launchpad.net/%s' % app_name,
 
-    packages=['scspell'],
+    packages=['scspell_lib'],
     scripts=['scspell.py'],
-    package_data={'scspell' : ['data/*']},
+    package_data={'scspell_lib' : ['data/*']},
 
     cmdclass={
         'install_scripts' : ScriptInstaller,
