@@ -31,7 +31,7 @@ import scspell_lib
 parser = OptionParser(usage="""\
 %prog [options] <source files>
 
-Performs spell-checking on all of the <source files>.""",
+Performs spell checking on all of the <source files>.""",
 version = """\
 %%prog v%s
 Copyright (C) 2009 Paul Pelzl
@@ -46,9 +46,14 @@ parser.add_option('--set-keyword-dictionary', dest='keyword_dict',
 parser.add_option('--export-keyword-dictionary', dest='keyword_export_filename',
         help='export current keyword dictionary to FILE', metavar='FILE',
 		action='store')
+parser.add_option('-v', '--verbose', dest='verbose', action='store_true',
+        help='print extra debugging information')
 
 
 (opts, args) = parser.parse_args()
+if opts.verbose:
+    scspell_lib.set_verbosity(scspell_lib.VERBOSITY_MAX)
+
 if opts.keyword_dict is not None:
 	scspell_lib.set_keyword_dict(opts.keyword_dict)
 elif opts.keyword_export_filename is not None:

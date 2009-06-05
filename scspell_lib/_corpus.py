@@ -24,7 +24,9 @@ Defines methods for storing dictionaries and performing searches against them.
 
 
 from __future__ import with_statement
+import os, sys
 from bisect import bisect_left
+from _util import *
 
 
 # String identifying natural language dictionary
@@ -45,6 +47,9 @@ class Corpus(object):
 
     def _mark_dirty(self):
         self._dirty = True
+
+    def _mark_clean(self):
+        self._dirty = False
 
     def is_dirty(self):
         return self._dirty
@@ -69,7 +74,7 @@ class Corpus(object):
 
     def _write_header(self, f):
         """Writes the corpus header to f, a file-like object."""
-        f.write(self.get_name() + ': ' + ', '.join(extensions))
+        f.write(self.get_name() + ': ' + ', '.join(self._extensions) + '\n')
 
 
 class ExactMatchCorpus(Corpus):
@@ -97,6 +102,7 @@ class ExactMatchCorpus(Corpus):
         self._write_header(f)
         for token in sorted(list(self._tokens)):
             f.write(token + '\n')
+        self._mark_clean()
 
 
 class PrefixMatchCorpus(Corpus):
@@ -131,6 +137,7 @@ class PrefixMatchCorpus(Corpus):
         self._write_header(f)
         for token in self._tokens:
             f.write(token + '\n')
+        self._mark_clean()
 
 
 class CorporaFile(object):
@@ -159,8 +166,10 @@ class CorporaFile(object):
         (_, ext) = os.path.splitext(filename)
         try:
             corpus = self._extensions[ext]
+            mutter(VERBOSITY_DEBUG, '(Matching against filetype "%s".)' % corpus.get_name())
             return corpus.match(token)
         except KeyError:
+            mutter(VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % ext)
             return False
 
     def add_natural(self, token):
@@ -176,19 +185,21 @@ class CorporaFile(object):
         (_, ext) = os.path.splitext(filename)
         try:
             corpus = self._extensions[ext]
+            mutter(VERBOSITY_DEBUG, '(Adding to filetype "%s".)' % corpus.get_name())
             corpus.add(token)
             return True
         except KeyError:
+            mutter(VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % ext)
             return False
         
     def close(self):
         """Update the corpus file iff the contents were modified."""
-        dirty = self._natural.is_dirty()
+        dirty = self._natural.is_dirty() if self._natural is not None else False
         for corpus in self._programming:
             dirty = dirty or corpus.is_dirty()
         if dirty:
             try:
-                with open(filename, 'wb') as f:
+                with open(self._filename, 'wb') as f:
                     self._natural.write(f)
                     for corpus in self._programming:
                         corpus.write(f)
@@ -221,7 +232,7 @@ class CorporaFile(object):
                 raise ParsingError('Dictionary category "%s" on line %u should have no extensions.' %
                         (CATEGORY_NATURAL, offset+1))
             (offset, tokens) = self._read_corpus_tokens(offset, lines)
-            self._natural = PrefixMatchCorpus(CATEGORY_NATURAL, tokens)
+            self._natural = PrefixMatchCorpus(CATEGORY_NATURAL, extensions, tokens)
             return offset
         else:
             if extensions == []:
@@ -234,7 +245,7 @@ class CorporaFile(object):
                     raise ParsingError('Duplicate extension "%s" in header on line %u.' %
                         (ext, offset+1))
             (offset, tokens) = self._read_corpus_tokens(offset, lines)
-            corpus = ExactMatchCorpus(category, tokens)
+            corpus = ExactMatchCorpus(category, extensions, tokens)
             self._programming.append(corpus)
             for ext in extensions:
                 self._extensions[ext] = corpus
@@ -256,10 +267,11 @@ class CorporaFile(object):
 
         category   = raw_category.strip()
         extensions = [ext.strip() for ext in raw_extensions.split(',')]
+        extensions = [ext for ext in extensions if ext != '']
         for ext in extensions:
             if not ext.startswith('.'):
                 raise ParsingError('Extension "%s" on line %u does not begin with a period.' % 
-                        (ext, line_num)
+                        (ext, line_num))
         return category, extensions
 
     def _read_corpus_tokens(self, offset, lines):
