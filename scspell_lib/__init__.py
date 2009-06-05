@@ -56,6 +56,9 @@ hex_regex = re.compile(r'0x[0-9a-fA-F]+')
 us_regex         = re.compile(r'[_\d]+')
 camel_word_regex = re.compile(r'([A-Z][a-z]*)')
 
+# File-id specifiers take this form
+file_id_regex = re.compile(r'scspell-id:[ \t]*([a-zA-Z0-9_\-]+)')
+
 
 class MatchDescriptor(object):
     """A MatchDescriptor captures the information necessary to represent a token
@@ -156,14 +159,31 @@ def decompose_token(token):
     return [st.lower() for st in subtokens if st != '']
     
 
-def handle_add(unmatched_subtokens, filename, dicts):
-    """Handle addition of one or more subtokens to a dictionary."""
-    for subtoken in unmatched_subtokens:
-        while True:
-            print ("""\
+def handle_add(unmatched_subtokens, filename, file_id, dicts):
+    """Handle addition of one or more subtokens to a dictionary.
+
+    :param unmatched_subtokens: sequence of subtokens, each of which failed spell check
+    :param filename: name of file containing the token
+    :param file_id: unique identifier for current file
+    :type  file_id: string or None
+    :param dicts: dictionary set against which to perform matching
+    :type  dicts: CorporaFile
+    :returns: None
+    """
+    if file_id is None:
+        prompt = """\
    Subtoken '%s':
       (i)gnore, add to (p)rogramming language dictionary, or add to (n)atural language
-      dictionary? [i]""") % subtoken
+      dictionary? [i]"""
+    else:
+        prompt = """\
+   Subtoken '%s':
+      (i)gnore, add to (p)rogramming language dictionary, add to (f)ile-specific
+      dictionary, or add to (n)atural language dictionary? [i]"""
+
+    for subtoken in unmatched_subtokens:
+        while True:
+            print prompt % subtoken
             ch = _portable.getch()
             if ch in (CTRL_C, CTRL_D, CTRL_Z):
                 print 'User abort.'
@@ -176,14 +196,19 @@ def handle_add(unmatched_subtokens, filename, dicts):
             elif ch == 'n':
                 dicts.add_natural(subtoken)
                 break
+            elif (file_id is not None) and (ch == 'f'):
+                dicts.add_fileid(subtoken, file_id)
+                break
 
 
-def handle_failed_check(match_desc, filename, unmatched_subtokens, dicts, ignores):
+def handle_failed_check(match_desc, filename, file_id, unmatched_subtokens, dicts, ignores):
     """Handle a token which failed the spell check operation.
 
     :param match_desc: description of the token matching instance
     :type  match_desc: MatchDescriptor
     :param filename: name of file containing the token
+    :param file_id: unique identifier for current file
+    :type  file_id: string or None
     :param unmatched_subtokens: sequence of subtokens, each of which failed spell check
     :param dicts: dictionary set against which to perform matching
     :type  dicts: CorporaFile
@@ -224,7 +249,7 @@ def handle_failed_check(match_desc, filename, unmatched_subtokens, dicts, ignore
             tail = re.sub(match_regex, replacement, match_desc.get_remainder())
             return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
         elif ch == 'a':
-            handle_add(unmatched_subtokens, filename, dicts)
+            handle_add(unmatched_subtokens, filename, file_id, dicts)
             break
         elif ch == 'c':
             for ctx in match_desc.get_context():
@@ -235,12 +260,14 @@ def handle_failed_check(match_desc, filename, unmatched_subtokens, dicts, ignore
     return (match_desc.get_string(), match_desc.get_ofs() + len(match_desc.get_token()))
 
 
-def spell_check_token(match_desc, filename, dicts, ignores):
+def spell_check_token(match_desc, filename, file_id, dicts, ignores):
     """Spell check a single token.
 
     :param match_desc: description of the token matching instance
     :type  match_desc: MatchDescriptor
     :param filename: name of file containing the token
+    :param file_id: unique identifier for this file
+    :type  file_id: string or None
     :param dicts: dictionary set against which to perform matching
     :type  dicts: CorporaFile
     :param ignores: set of tokens to ignore for this session
@@ -248,14 +275,15 @@ def spell_check_token(match_desc, filename, dicts, ignores):
             ``ofs`` is the byte offset within the text where searching shall resume.
     """
     token = match_desc.get_token()
-    if (token.lower not in ignores) and (hex_regex.match(token) is None):
+    if (token.lower() not in ignores) and (hex_regex.match(token) is None):
         subtokens = decompose_token(token)
         unmatched_subtokens = [st for st in subtokens if len(st) > LEN_THRESHOLD
-                                                   and (not dicts.match(token, filename))
-                                                   and (st not in ignores)]
+                                       and (not dicts.match(st, filename, file_id))
+                                       and (st not in ignores)]
         if unmatched_subtokens != []:
             unmatched_subtokens = make_unique(unmatched_subtokens)
-            return handle_failed_check(match_desc, filename, unmatched_subtokens, dicts, ignores)
+            return handle_failed_check(match_desc, filename, file_id, unmatched_subtokens,
+                    dicts, ignores)
     return (match_desc.get_string(), match_desc.get_ofs() + len(token))
 
 
@@ -276,13 +304,25 @@ def spell_check_file(filename, dicts, ignores):
                     (filename, str(e))
         return
 
+    # Look for a file ID
+    file_id = None
+    m_id    = file_id_regex.search(source_text)
+    if m_id is not None:
+        file_id = m_id.group(1)
+        mutter(VERBOSITY_DEBUG, '(File contains id "%s".)' % file_id)
+    
+    # Search for tokens to spell-check
     data = source_text
     pos  = 0
     while True:
         m = token_regex.search(data, pos)
         if m is None:
             break
-        (data, pos) = spell_check_token(MatchDescriptor(data, m), filename, dicts, ignores)
+        if m_id is not None and m.start() >= m_id.start() and m.start() < m_id.end():
+            # This is matching the file-id.  Skip over it.
+            pos = m_id.end()
+            continue
+        data, pos = spell_check_token(MatchDescriptor(data, m), filename, file_id, dicts, ignores)
 
     # Write out the source file if it was modified
     if data != source_text:
@@ -394,4 +434,6 @@ __all__ = [
     'VERBOSITY_MAX'
 ]
 
+
+# scspell-id: 8bd41bba-f84b-4b8f-880c-4089e37b611a
 

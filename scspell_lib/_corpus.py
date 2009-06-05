@@ -61,13 +61,13 @@ class Corpus(object):
 
     def get_name(self):
         """Get the descriptive name of this dictionary."""
-        assert dict_type == DICT_TYPE_FILETYPE
+        assert self._dict_type == DICT_TYPE_FILETYPE
         (name, _) = self._metadata
         return name
 
     def get_extensions(self):
         """Get the list of extensions associated with this dictionary."""
-        assert dict_type == DICT_TYPE_FILETYPE
+        assert self._dict_type == DICT_TYPE_FILETYPE
         (_, extensions) = self._metadata
         return extensions
 
@@ -127,6 +127,7 @@ class ExactMatchCorpus(Corpus):
         self._mark_clean()
 
 
+
 class PrefixMatchCorpus(Corpus):
     """A token matches against a PrefixMatchCorpus iff the token is a prefix of
     any item in the corpus.
@@ -182,18 +183,37 @@ class CorporaFile(object):
             sys.exit(1)
 
 
-    def match(self, token, filename):
-        """Return true if the token matches any of the applicable corpora."""
+    def match(self, token, filename, file_id):
+        """Return True if the token matches any of the applicable corpora.
+
+        :param token: string being matched
+        :param filename: name of file containing token
+        :param file_id: unique identifier for current file
+        :type  file_id: string or None
+        :returns: True if token matches a dictionary
+        """
         if self._natural_dict.match(token):
             return True
+
         (_, ext) = os.path.splitext(filename)
         try:
             corpus = self._extensions[ext]
             mutter(VERBOSITY_DEBUG, '(Matching against filetype "%s".)' % corpus.get_name())
-            return corpus.match(token)
+            if corpus.match(token):
+                return True
         except KeyError:
             mutter(VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % ext)
-            return False
+
+        if file_id is not None:
+            try:
+                corpus = self._fileids[file_id]
+                mutter(VERBOSITY_DEBUG, '(Matching against file-id "%s".)' % file_id)
+                if corpus.match(token):
+                    return True
+            except KeyError:
+                mutter(VERBOSITY_DEBUG, '(No file-id match for "%s".)' % file_id)
+
+        return False
 
 
     def add_natural(self, token):
@@ -217,6 +237,22 @@ class CorporaFile(object):
             mutter(VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % ext)
             return False
         
+    
+    def add_fileid(self, token, file_id):
+        """Add the token to a file-specific corpus.
+
+        :returns: True if the add was successful, False if there is no corpus
+                  with a matching filename extension.
+        """
+        try:
+            corpus = self._fileids[file_id]
+            mutter(VERBOSITY_DEBUG, '(Adding to file-id "%s".)' % file_id)
+            corpus.add(token)
+            return True
+        except KeyError:
+            mutter(VERBOSITY_DEBUG, '(No file-id match for "%s".)' % file_id)
+            return False
+
 
     def close(self):
         """Update the corpus file iff the contents were modified."""
@@ -376,4 +412,6 @@ class CorporaFile(object):
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.close()
         return False
+
+# scspell-id: f123e4a9-0b58-4548-af1d-9f2b35930139
 

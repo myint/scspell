@@ -53,3 +53,5 @@ def get_data_dir(progname):
     return os.path.normpath(os.path.join(parent_dir, prog_dir))
 
 
+# scspell-id: 8e6d38db-1ea4-4938-8c1f-f2e2a312f071
+

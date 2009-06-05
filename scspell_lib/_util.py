@@ -39,3 +39,6 @@ def set_verbosity(value):
     VERBOSITY_* are good choices."""
     SETTINGS['verbosity'] = value
 
+
+# scspell-id: b114984a-c7aa-40a8-9a53-b54fb6a52582
+
