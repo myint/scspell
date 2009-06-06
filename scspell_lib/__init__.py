@@ -45,8 +45,10 @@ DICT_DEFAULT_LOC = os.path.join(USER_DATA_DIR, 'dictionary.txt')
 SCSPELL_DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data'))
 SCSPELL_CONF     = os.path.join(USER_DATA_DIR, 'scspell.conf')
 
-# Treat anything alphanumeric as a token of interest
-token_regex = re.compile(r'\w+')
+# Treat anything alphanumeric as a token of interest, as long as it is not
+# immediately preceded by a single backslash.  (The string "\ntext" should match
+# on "text" rather than "ntext".)
+token_regex = re.compile(r'(?<![^\\]\\)\w+')
 
 # Hex digits will be treated as a special case, because they can look like
 # word-like even though they are actually numeric
