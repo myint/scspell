@@ -167,20 +167,20 @@ def handle_new_filetype(extension, dicts):
     """
     while True:
         descr = raw_input("""\
-         Enter a descriptive name for the programming language: """).strip()
+            Enter a descriptive name for the programming language: """).strip()
         if descr == '':
             print """\
-         (Canceled.)\n"""
+            (Canceled.)\n"""
             return False
 
         if (':' in descr) or (';' in descr):
             print """\
-         Illegal characters in descriptive name."""
+            Illegal characters in descriptive name."""
             continue
 
         if descr in dicts.get_filetypes():
             print """\
-         That name is already in use."""
+            That name is already in use."""
             continue
 
         dicts.new_filetype(descr, [extension])
@@ -193,11 +193,11 @@ def handle_new_extension(ext, dicts):
     :returns: True if new extension was registered, False if canceled.
     """
     print ("""\
-         Extension "%s" is not registered.  With which programming language
-         should "%s" be associated?""" % (ext, ext))
+            Extension "%s" is not registered.  With which programming language
+            should "%s" be associated?""" % (ext, ext))
 
     type_format = """\
-            %3u: %s"""
+               %3u: %s"""
     filetypes = dicts.get_filetypes()
     for i, ft in enumerate(filetypes):
         print type_format % (i, ft)
@@ -205,10 +205,10 @@ def handle_new_extension(ext, dicts):
 
     while True:
         selection = raw_input("""\
-         Enter number of desired file-type: """)
+            Enter number of desired file-type: """)
         if selection == '':
             print """\
-         (Canceled.)\n"""
+            (Canceled.)\n"""
             return False
 
         try:
