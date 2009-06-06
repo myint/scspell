@@ -14,8 +14,8 @@ particularly smart--rather, it does the simplest thing that can possibly work:
        as valid subtokens.
 
 When applied to code written in most popular programming languages while using
-typical naming conventions, this algorithm will catch many errors without an
-annoying false positive rate.
+typical naming conventions, this algorithm will usually catch many errors
+without an annoying false positive rate.
 
 In an effort to catch more spelling errors, **scspell** is able to check each
 file against a set of dictionary words selected *specifically for that file*.  Up
@@ -118,10 +118,11 @@ The unique ID must consist only of letters, numbers, underscores, and dashes.
 
 
 Sharing a Dictionary
-----------------------------
+--------------------
 
 A team of developers working on the same source tree may wish to share a common
-dictionary.  You can set the location of a shared dictionary by executing ::
+dictionary.  You can permanently set the location of a shared dictionary by
+executing ::
 
     $ scspell --set-dictionary=/path/to/dictionary_file.txt
 
@@ -132,6 +133,10 @@ The current dictionary can be saved to a file by executing ::
 
     $ scspell --export-dictionary=/path/to/output_file.txt
 
+You can also override the dictionary location for a single spell check session,
+by using the ``--override-dictionary`` option::
+
+    $ scspell --override-dictionary=/path/to/dictionary_file.txt source_file1 ...
 
 Installation
 ============
@@ -170,4 +175,7 @@ Bugs, etc.
 this would be a great place to file bug reports and feature requests or track
 development via `bzr <http://bazaar-vcs.org>`_.  If that's not your style, just
 send an email to Paul Pelzl <``pelzlpj at gmail dot com``> .
+
+Patches adding the most common keywords/APIs for popular programming languages
+would be most welcome.
 
