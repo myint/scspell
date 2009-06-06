@@ -73,24 +73,27 @@ string to cancel.
 If you select the ``(a)dd to dictionary`` option, then you will be
 prompted with the following options for every subtoken:
 
+    (b)ack
+        Return to the previous menu, without taking any action.
+        
     (i)gnore
         Skip to the next subtoken, without taking any action.
 
     add to (p)rogramming language dictionary
-        Adds this subtoken to the dictionary associated with the
+        Add this subtoken to the dictionary associated with the
         programming language of the current file.  **scspell** uses the
         file extension to determine the language, so you will only
         see this option for files which have an extension.
 
     add to (f)ile-specific dictionary
-        Adds this subtoken to the dictionary associated with the
+        Add this subtoken to the dictionary associated with the
         current file.  **scspell** identifies unique files by scanning
         for an embedded ID string, so you will only see this option
         for files which have such an ID.  See `Creating File IDs`_
         for details.
 
     add to (n)atural language dictionary
-        Adds this subtoken to the natural language dictionary.
+        Add this subtoken to the natural language dictionary.
 
 
 .. _`Creating File IDs`:

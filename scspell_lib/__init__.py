@@ -168,6 +168,8 @@ def handle_new_filetype(extension, dicts):
         descr = raw_input("""\
          Enter a descriptive name for the programming language: """).strip()
         if descr == '':
+            print """\
+         (Canceled.)\n"""
             return False
 
         if (':' in descr) or (';' in descr):
@@ -204,6 +206,8 @@ def handle_new_extension(ext, dicts):
         selection = raw_input("""\
          Enter number of desired file-type: """)
         if selection == '':
+            print """\
+         (Canceled.)\n"""
             return False
 
         try:
@@ -226,7 +230,7 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
     :type  file_id: string or None
     :param dicts: dictionary set against which to perform matching
     :type  dicts: CorporaFile
-    :returns: None
+    :returns: True if subtokens were handled, False if canceled
     """
     (_, ext) = os.path.splitext(filename.lower())
 
@@ -234,23 +238,24 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
         if ext != '':
             prompt = """\
       Subtoken '%s':
-         (i)gnore, add to (p)rogramming language dictionary, or add to
+         (b)ack, (i)gnore, add to (p)rogramming language dictionary, or add to
          (n)atural language dictionary? [i]"""
         else:
             prompt = """\
       Subtoken '%s':
-         (i)gnore or add to (n)atural language dictionary? [i]"""
+         (b)ack, (i)gnore or add to (n)atural language dictionary? [i]"""
     else:
         if ext != '':
             prompt = """\
       Subtoken '%s':
-         (i)gnore, add to (p)rogramming language dictionary, add to (f)ile-
-         -specific dictionary, or add to (n)atural language dictionary? [i]"""
+         (b)ack, (i)gnore, add to (p)rogramming language dictionary, add to
+         (f)ile-specific dictionary, or add to (n)atural language
+         dictionary? [i]"""
         else:
             prompt = """\
       Subtoken '%s':
-         (i)gnore, add to (f)ile-specific dictionary, or add to (n)atural
-         language dictionary? [i]"""
+         (b)ack, (i)gnore, add to (f)ile-specific dictionary, or add to
+         (n)atural language dictionary? [i]"""
 
     for subtoken in unmatched_subtokens:
         while True:
@@ -259,6 +264,10 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
             if ch in (CTRL_C, CTRL_D, CTRL_Z):
                 print 'User abort.'
                 sys.exit(1)
+            elif ch == 'b':
+                print """\
+         (Canceled.)\n"""
+                return False
             elif ch in ('i', '\r', '\n'):
                 break
             elif ext != '' and ch == 'p':
@@ -274,6 +283,7 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
             elif (file_id is not None) and (ch == 'f'):
                 dicts.add_by_fileid(subtoken, file_id)
                 break
+    return True
 
 
 def handle_failed_check(match_desc, filename, file_id, unmatched_subtokens, dicts, ignores):
@@ -309,24 +319,30 @@ def handle_failed_check(match_desc, filename, file_id, unmatched_subtokens, dict
             ignores.add(token.lower())
             break
         elif ch == 'r':
-            replacement = raw_input('      Replacement text: ')
+            replacement = raw_input("""\
+      Replacement text: """)
             if replacement == '':
-                print '      (Not replaced.)'
-                break
-            ignores.add(replacement.lower())
-            tail = re.sub(match_regex, replacement, match_desc.get_remainder(), 1)
-            return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
+                print """\
+      (Canceled.)\n"""
+            else:
+                ignores.add(replacement.lower())
+                tail = re.sub(match_regex, replacement, match_desc.get_remainder(), 1)
+                print
+                return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
         elif ch == 'R':
-            replacement = raw_input('      Replacement text: ')
+            replacement = raw_input("""\
+      Replacement text: """)
             if replacement == '':
-                print '      (Not replaced.)'
-                break
-            ignores.add(replacement.lower())
-            tail = re.sub(match_regex, replacement, match_desc.get_remainder())
-            return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
+                print """\
+      (Canceled.)\n"""
+            else:
+                ignores.add(replacement.lower())
+                tail = re.sub(match_regex, replacement, match_desc.get_remainder())
+                print
+                return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
         elif ch == 'a':
-            handle_add(unmatched_subtokens, filename, file_id, dicts)
-            break
+            if handle_add(unmatched_subtokens, filename, file_id, dicts):
+                break
         elif ch == 'c':
             for ctx in match_desc.get_context():
                 print '%4u: %s' % ctx
