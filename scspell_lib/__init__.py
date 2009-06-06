@@ -33,9 +33,10 @@ from _util import *
 
 
 VERSION = '0.1.0'
-CONTEXT_SIZE  = 4       # Size of context printed upon request
-LEN_THRESHOLD = 3       # Subtokens shorter than 4 characters are likely to be abbreviations
-CTRL_C = '\x03'         # Special key codes returned from getch()
+CONFIG_SECTION = 'Settings'     # Name of scspell.conf section header
+CONTEXT_SIZE  = 4               # Size of context printed upon request
+LEN_THRESHOLD = 3               # Subtokens shorter than 4 characters are likely to be abbreviations
+CTRL_C = '\x03'                 # Special key codes returned from getch()
 CTRL_D = '\x04'
 CTRL_Z = '\x1a'
 
@@ -456,7 +457,7 @@ def locate_dictionary():
         f.close()
 
     try:
-        loc = config.get('Locations', 'dictionary')
+        loc = config.get(CONFIG_SECTION, 'dictionary')
         if os.path.isabs(loc):
             return loc
         else:
@@ -472,9 +473,7 @@ def set_dictionary(filename):
 
     :returns: None
     """
-    if not os.path.isabs(filename):
-        print 'Error: dictionary location must be an absolute path.'
-        sys.exit(1)
+    filename = os.path.realpath(os.path.expandvars(os.path.expanduser(filename)))
 
     verify_user_data_dir()
     config = ConfigParser.RawConfigParser()
@@ -485,10 +484,10 @@ def set_dictionary(filename):
         sys.exit(1)
 
     try:
-        config.add_section('Locations')
+        config.add_section(CONFIG_SECTION)
     except ConfigParser.DuplicateSectionError:
         pass
-    config.set('Locations', 'dictionary', filename)
+    config.set(CONFIG_SECTION, 'dictionary', filename)
 
     with open(SCSPELL_CONF, 'w') as f:
         config.write(f)
