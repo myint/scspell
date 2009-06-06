@@ -29,9 +29,9 @@ import scspell_lib
 
 
 parser = OptionParser(usage="""\
-%prog [options] <source files>
+%prog [options] [source files]
 
-Performs spell checking on all of the <source files>.""",
+Performs spell checking on all of the [source files].""",
 version = """\
 %%prog v%s
 Copyright (C) 2009 Paul Pelzl
@@ -40,16 +40,19 @@ Copyright (C) 2009 Paul Pelzl
 you are welcome to redistribute it under certain conditions; for details,
 see COPYING.txt as distributed with the program.
 """ % scspell_lib.VERSION)
+parser.add_option('-v', '--verbose', dest='verbose', action='store_true',
+        help='print extra debugging information')
+parser.add_option('--override-dictionary', dest='override_filename',
+        help='set location of dictionary to FILE, for current session only',
+        metavar='FILE', action='store')
 parser.add_option('--set-dictionary', dest='dictionary',
-        help='set location of dictionary to FILE', metavar='FILE',
+        help='permanently set location of dictionary to FILE', metavar='FILE',
 		action='store')
 parser.add_option('--export-dictionary', dest='export_filename',
         help='export current dictionary to FILE', metavar='FILE',
 		action='store')
 parser.add_option('-i', '--gen-id', dest='gen_id', action='store_true',
         help='generate a unique file-id string')
-parser.add_option('-v', '--verbose', dest='verbose', action='store_true',
-        help='print extra debugging information')
 
 
 (opts, args) = parser.parse_args()
@@ -67,7 +70,7 @@ elif len(args) < 1:
     parser.print_help()
     sys.exit(1)
 else:
-	scspell_lib.spell_check(args)
+	scspell_lib.spell_check(args, opts.override_filename)
    
 
 # scspell-id: 285634e7-e5de-4e95-accc-ba639be2834e
