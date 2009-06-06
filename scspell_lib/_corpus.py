@@ -130,6 +130,7 @@ class ExactMatchCorpus(Corpus):
         self._write_header(f)
         for token in sorted(list(self._tokens)):
             f.write(token + '\n')
+        f.write('\n')
         self._mark_clean()
 
 
@@ -166,6 +167,7 @@ class PrefixMatchCorpus(Corpus):
         self._write_header(f)
         for token in self._tokens:
             f.write(token + '\n')
+        f.write('\n')
         self._mark_clean()
 
 
@@ -185,7 +187,7 @@ class CorporaFile(object):
 
         try:
             with open(filename, 'rb') as f:
-                lines = [line.strip('\r\n') for line in f.readlines()]
+                lines = [line.strip(' \r\n') for line in f.readlines()]
             return self._parse(lines)
         except IOError, e:
             print 'Warning: unable to read dictionary file "%s". (Reason: %s)' % (filename, str(e))
@@ -445,7 +447,7 @@ class CorporaFile(object):
         for i, line in enumerate(lines[offset+1:]):
             if ':' in line:
                 return (offset + i + 1, tokens)
-            else:
+            elif line != '':
                 tokens.append(line)
         return len(lines), tokens
 
