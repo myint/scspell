@@ -319,26 +319,16 @@ def handle_failed_check(match_desc, filename, file_id, unmatched_subtokens, dict
         elif ch == 'I':
             ignores.add(token.lower())
             break
-        elif ch == 'r':
+        elif ch in ('r', 'R'):
             replacement = raw_input("""\
-      Replacement text: """)
+      Replacement text for '%s': """ % token)
             if replacement == '':
                 print """\
       (Canceled.)\n"""
             else:
                 ignores.add(replacement.lower())
-                tail = re.sub(match_regex, replacement, match_desc.get_remainder(), 1)
-                print
-                return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
-        elif ch == 'R':
-            replacement = raw_input("""\
-      Replacement text: """)
-            if replacement == '':
-                print """\
-      (Canceled.)\n"""
-            else:
-                ignores.add(replacement.lower())
-                tail = re.sub(match_regex, replacement, match_desc.get_remainder())
+                tail = re.sub(match_regex, replacement, match_desc.get_remainder(),
+                        1 if ch == 'r' else 0)
                 print
                 return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
         elif ch == 'a':
