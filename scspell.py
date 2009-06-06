@@ -40,8 +40,6 @@ Copyright (C) 2009 Paul Pelzl
 you are welcome to redistribute it under certain conditions; for details,
 see COPYING.txt as distributed with the program.
 """ % scspell_lib.VERSION)
-parser.add_option('-v', '--verbose', dest='verbose', action='store_true',
-        help='print extra debugging information')
 parser.add_option('--override-dictionary', dest='override_filename',
         help='set location of dictionary to FILE, for current session only',
         metavar='FILE', action='store')
@@ -53,10 +51,12 @@ parser.add_option('--export-dictionary', dest='export_filename',
 		action='store')
 parser.add_option('-i', '--gen-id', dest='gen_id', action='store_true',
         help='generate a unique file-id string')
+parser.add_option('-D', '--debug', dest='debug', action='store_true',
+        help='print extra debugging information')
 
 
 (opts, args) = parser.parse_args()
-if opts.verbose:
+if opts.debug:
     scspell_lib.set_verbosity(scspell_lib.VERBOSITY_MAX)
 
 if opts.gen_id:
