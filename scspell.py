@@ -23,7 +23,7 @@ scspell -- an interactive, conservative spell-checker for source code.
 """
 
 
-import sys
+import sys, uuid
 from optparse import OptionParser
 import scspell_lib
 
@@ -40,12 +40,14 @@ Copyright (C) 2009 Paul Pelzl
 you are welcome to redistribute it under certain conditions; for details,
 see COPYING.txt as distributed with the program.
 """ % scspell_lib.VERSION)
-parser.add_option('--set-keyword-dictionary', dest='keyword_dict',
-        help='set location of keyword dictionary to FILE', metavar='FILE',
+parser.add_option('--set-dictionary', dest='dictionary',
+        help='set location of dictionary to FILE', metavar='FILE',
 		action='store')
-parser.add_option('--export-keyword-dictionary', dest='keyword_export_filename',
-        help='export current keyword dictionary to FILE', metavar='FILE',
+parser.add_option('--export-dictionary', dest='export_filename',
+        help='export current dictionary to FILE', metavar='FILE',
 		action='store')
+parser.add_option('-i', '--gen-id', dest='gen_id', action='store_true',
+        help='generate a unique file-id string')
 parser.add_option('-v', '--verbose', dest='verbose', action='store_true',
         help='print extra debugging information')
 
@@ -54,11 +56,13 @@ parser.add_option('-v', '--verbose', dest='verbose', action='store_true',
 if opts.verbose:
     scspell_lib.set_verbosity(scspell_lib.VERBOSITY_MAX)
 
-if opts.keyword_dict is not None:
-	scspell_lib.set_keyword_dict(opts.keyword_dict)
-elif opts.keyword_export_filename is not None:
-	scspell_lib.export_keyword_dict(opts.keyword_export_filename)
-	print 'Exported keyword dictionary to "%s".' % opts.keyword_export_filename
+if opts.gen_id:
+    print 'scspell-id: %s' % str(uuid.uuid1())
+elif opts.dictionary is not None:
+	scspell_lib.set_dictionary(opts.dictionary)
+elif opts.export_filename is not None:
+	scspell_lib.export_dictionary(opts.export_filename)
+	print 'Exported dictionary to "%s".' % opts.export_filename
 elif len(args) < 1:
     parser.print_help()
     sys.exit(1)

@@ -109,8 +109,10 @@ file for a string of the following form::
     scspell-id: <unique ID>
 
 The unique ID must consist only of letters, numbers, underscores, and dashes.
-For best results, use a tool like ``uuidgen`` (Unix) or ``guidgen`` (Windows)
-to generate a unique ID for each file of interest.
+**scspell** can generate suitable unique ID strings using the ``--gen-id`` option::
+
+    $ scspell --gen-id
+    scspell-id: e497803c-523a-11de-ae42-0017f2ee0f37
 
 (Most likely you will want to place a file's unique ID inside a source code comment.)
 
