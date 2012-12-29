@@ -20,16 +20,27 @@
 """
 scspell -- an interactive, conservative spell-checker for source code.
 """
-
-
+from __future__ import print_function
 from __future__ import with_statement
+
 import os, re, sys, shutil
 from bisect import bisect_left
-import ConfigParser
 
-import _portable
-from _corpus import CorporaFile
-from _util import *
+try:
+    import ConfigParser
+except ImportError:
+    # Python 3
+    import configparser as ConfigParser
+
+from . import _portable
+from ._corpus import CorporaFile
+from ._util import *
+
+
+try:
+    raw_input
+except NameError:
+    raw_input = input
 
 
 VERSION = '0.1.0'
@@ -105,7 +116,7 @@ class MatchDescriptor(object):
 
         # Compute the byte offset of start of every line
         offsets = []
-        for i in xrange(len(lines)):
+        for i in range(len(lines)):
             if i == 0:
                 offsets.append(0)
             else:
@@ -121,7 +132,7 @@ class MatchDescriptor(object):
 
         # Compute the set of lines surrounding this line number
         self._context = [(i+1, line.strip('\r\n')) for (i, line) in enumerate(lines) if 
-                (i+1 - self._line_num) in range(-CONTEXT_SIZE/2, CONTEXT_SIZE/2 + 1)]
+                (i+1 - self._line_num) in range(-CONTEXT_SIZE // 2, CONTEXT_SIZE // 2 + 1)]
         return self._context
 
     def get_line_num(self):
@@ -171,18 +182,18 @@ def handle_new_filetype(extension, dicts):
         descr = raw_input("""\
             Enter a descriptive name for the programming language: """).strip()
         if descr == '':
-            print """\
-            (Canceled.)\n"""
+            print("""\
+            (Canceled.)\n""")
             return False
 
         if (':' in descr) or (';' in descr):
-            print """\
-            Illegal characters in descriptive name."""
+            print("""\
+            Illegal characters in descriptive name.""")
             continue
 
         if descr in dicts.get_filetypes():
-            print """\
-            That name is already in use."""
+            print("""\
+            That name is already in use.""")
             continue
 
         dicts.new_filetype(descr, [extension])
@@ -194,23 +205,23 @@ def handle_new_extension(ext, dicts):
 
     :returns: True if new extension was registered, False if canceled.
     """
-    print ("""\
+    print(("""\
             Extension "%s" is not registered.  With which programming language
-            should "%s" be associated?""" % (ext, ext))
+            should "%s" be associated?""" % (ext, ext)))
 
     type_format = """\
                %3u: %s"""
     filetypes = dicts.get_filetypes()
     for i, ft in enumerate(filetypes):
-        print type_format % (i, ft)
-    print type_format % (len(filetypes), '(Create new language file-type)')
+        print(type_format % (i, ft))
+    print(type_format % (len(filetypes), '(Create new language file-type)'))
 
     while True:
         selection = raw_input("""\
             Enter number of desired file-type: """)
         if selection == '':
-            print """\
-            (Canceled.)\n"""
+            print("""\
+            (Canceled.)\n""")
             return False
 
         try:
@@ -262,14 +273,14 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
 
     for subtoken in unmatched_subtokens:
         while True:
-            print prompt % subtoken
+            print(prompt % subtoken)
             ch = _portable.getch()
             if ch in (CTRL_C, CTRL_D, CTRL_Z):
-                print 'User abort.'
+                print('User abort.')
                 sys.exit(1)
             elif ch == 'b':
-                print """\
-         (Canceled.)\n"""
+                print("""\
+         (Canceled.)\n""")
                 return False
             elif ch in ('i', '\r', '\n'):
                 break
@@ -305,16 +316,16 @@ def handle_failed_check(match_desc, filename, file_id, unmatched_subtokens, dict
             ``ofs`` is the byte offset within the text where searching shall resume.
     """
     token = match_desc.get_token()
-    print "%s:%u: Unmatched '%s' --> {%s}" % (filename, match_desc.get_line_num(), token, 
-                ', '.join([st for st in unmatched_subtokens]))
+    print("%s:%u: Unmatched '%s' --> {%s}" % (filename, match_desc.get_line_num(), token, 
+                ', '.join([st for st in unmatched_subtokens])))
     match_regex = re.compile(re.escape(match_desc.get_token()))
     while True:
-        print """\
+        print("""\
    (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
-   show (c)ontext? [i]"""
+   show (c)ontext? [i]""")
         ch = _portable.getch()
         if ch in (CTRL_C, CTRL_D, CTRL_Z):
-            print 'User abort.'
+            print('User abort.')
             sys.exit(1)
         elif ch in ('i', '\r', '\n'):
             break
@@ -325,22 +336,22 @@ def handle_failed_check(match_desc, filename, file_id, unmatched_subtokens, dict
             replacement = raw_input("""\
       Replacement text for '%s': """ % token)
             if replacement == '':
-                print """\
-      (Canceled.)\n"""
+                print("""\
+      (Canceled.)\n""")
             else:
                 ignores.add(replacement.lower())
                 tail = re.sub(match_regex, replacement, match_desc.get_remainder(),
                         1 if ch == 'r' else 0)
-                print
+                print()
                 return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
         elif ch == 'a':
             if handle_add(unmatched_subtokens, filename, file_id, dicts):
                 break
         elif ch == 'c':
             for ctx in match_desc.get_context():
-                print '%4u: %s' % ctx
-            print
-    print
+                print('%4u: %s' % ctx)
+            print()
+    print()
     # Default: text is unchanged
     return (match_desc.get_string(), match_desc.get_ofs() + len(match_desc.get_token()))
 
@@ -382,11 +393,11 @@ def spell_check_file(filename, dicts, ignores):
     """
     fq_filename = os.path.normcase(os.path.realpath(filename))
     try:
-        with open(fq_filename, 'rb') as source_file:
+        with open_with_encoding(fq_filename) as source_file:
             source_text = source_file.read()
-    except IOError, e:
-        print 'Error: can\'t read source file "%s"; skipping.  (Reason: %s)' % \
-                    (filename, str(e))
+    except IOError as e:
+        print('Error: can\'t read source file "%s"; skipping.  (Reason: %s)' % \
+                    (filename, str(e)))
         return
 
     # Look for a file ID
@@ -411,11 +422,11 @@ def spell_check_file(filename, dicts, ignores):
 
     # Write out the source file if it was modified
     if data != source_text:
-        with open(fq_filename, 'wb') as source_file:
+        with open_with_encoding(fq_filename, mode='w') as source_file:
             try:
                 source_file.write(data)
-            except IOError, e:
-                print str(e)
+            except IOError as e:
+                print(str(e))
                 return
             
 
@@ -424,7 +435,7 @@ def verify_user_data_dir():
     from scratch.
     """
     if not os.path.exists(USER_DATA_DIR):
-        print 'Creating new personal dictionary in %s .\n' % USER_DATA_DIR
+        print('Creating new personal dictionary in %s .\n' % USER_DATA_DIR)
         os.makedirs(USER_DATA_DIR)
         shutil.copyfile(os.path.join(SCSPELL_DATA_DIR, 'dictionary.txt'), DICT_DEFAULT_LOC)
 
@@ -435,15 +446,15 @@ def locate_dictionary():
     """
     verify_user_data_dir()
     try:
-        f = open(SCSPELL_CONF, 'r')
+        f = open_with_encoding(SCSPELL_CONF, encoding='utf-8')
     except IOError:
         return DICT_DEFAULT_LOC
 
     config = ConfigParser.RawConfigParser()
     try:
         config.readfp(f)
-    except ConfigParser.ParsingError, e:
-        print str(e)
+    except ConfigParser.ParsingError as e:
+        print(str(e))
         sys.exit(1)
     finally:
         f.close()
@@ -453,8 +464,8 @@ def locate_dictionary():
         if os.path.isabs(loc):
             return loc
         else:
-            print ('Error while parsing "%s": dictionary must be an absolute path.' %
-                    SCSPELL_CONF)
+            print(('Error while parsing "%s": dictionary must be an absolute path.' %
+                    SCSPELL_CONF))
             sys.exit(1)
     except ConfigParser.Error:
         return DICT_DEFAULT_LOC
@@ -471,8 +482,8 @@ def set_dictionary(filename):
     config = ConfigParser.RawConfigParser()
     try:
         config.read(SCSPELL_CONF)
-    except ConfigParser.ParsingError, e:
-        print str(e)
+    except ConfigParser.ParsingError as e:
+        print(str(e))
         sys.exit(1)
 
     try:
@@ -481,7 +492,7 @@ def set_dictionary(filename):
         pass
     config.set(CONFIG_SECTION, 'dictionary', filename)
 
-    with open(SCSPELL_CONF, 'w') as f:
+    with open_with_encoding(SCSPELL_CONF, encoding='utf-8', mode='w') as f:
         config.write(f)
 
 

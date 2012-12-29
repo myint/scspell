@@ -21,12 +21,13 @@ corpus.py
 
 Defines methods for storing dictionaries and performing searches against them.
 """
+from __future__ import print_function
 
 
 from __future__ import with_statement
 import os, re, sys
 from bisect import bisect_left
-from _util import *
+from ._util import *
 
 
 DICT_TYPE_NATURAL  = 'NATURAL'       # Identifies natural language dictionary
@@ -186,15 +187,15 @@ class CorporaFile(object):
         self._fileids        = {}       # Associates each file-id with a file-specific dictionary
 
         try:
-            with open(filename, 'rb') as f:
+            with open_with_encoding(filename, mode='r') as f:
                 lines = [line.strip(' \r\n') for line in f.readlines()]
             return self._parse(lines)
-        except IOError, e:
-            print 'Warning: unable to read dictionary file "%s". (Reason: %s)' % (filename, str(e))
-            print 'Continuing with empty dictionary.\n'
+        except IOError as e:
+            print('Warning: unable to read dictionary file "%s". (Reason: %s)' % (filename, str(e)))
+            print('Continuing with empty dictionary.\n')
             self._natural_dict = PrefixMatchCorpus(DICT_TYPE_NATURAL, '', [])
-        except ParsingError, e:
-            print 'Error while parsing dictionary file "%s": %s' % (filename, str(e))
+        except ParsingError as e:
+            print('Error while parsing dictionary file "%s": %s' % (filename, str(e)))
             sys.exit(1)
 
 
@@ -308,7 +309,7 @@ class CorporaFile(object):
             dirty = dirty or corpus.is_dirty()
         if dirty:
             try:
-                with open(self._filename, 'wb') as f:
+                with open_with_encoding(self._filename, mode='w') as f:
                     for corpus in self._filetype_dicts:
                         corpus.write(f)
                     for corpus in self._fileid_dicts:
@@ -316,9 +317,9 @@ class CorporaFile(object):
                     # Natural language dict goes at the end for readability... it is
                     # typically much bigger than the other dictionaries
                     self._natural_dict.write(f)
-            except IOError, e:
-                print ('Warning: unable to write dictionary file "%s". (Reason: %s)' %
-                        (filename, str(e)))
+            except IOError as e:
+                print(('Warning: unable to write dictionary file "%s". (Reason: %s)' %
+                        (filename, str(e))))
 
 
     def _parse(self, lines):
@@ -423,7 +424,7 @@ class CorporaFile(object):
                 if not ext.startswith('.'):
                     raise ParsingError('Extension "%s" on line %u does not begin with a period.' %
                         (ext, line_num))
-                if self._extensions.has_key(ext):
+                if ext in self._extensions:
                     raise ParsingError('Duplicate extension "%s" on line %u.' % (ext, line_num))
             return (dict_type, (descr, extensions))
 
@@ -431,7 +432,7 @@ class CorporaFile(object):
             if file_id_regex.match(metadata) is None:
                 raise ParsingError('%s metadata string "%s" on line %u is not a valid file ID.' %
                     DICT_TYPE_FILEID, metadata, line_num)
-            if self._fileids.has_key(metadata):
+            if metadata in self._fileids:
                 raise ParsingError('Duplicate file ID string "%s" on line %u.' % (metadata, line_num))
             return (dict_type, metadata)
 

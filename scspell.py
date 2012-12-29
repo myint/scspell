@@ -21,6 +21,7 @@
 """
 scspell -- an interactive, conservative spell-checker for source code.
 """
+from __future__ import print_function
 
 
 import sys, uuid
@@ -60,12 +61,12 @@ if opts.debug:
     scspell_lib.set_verbosity(scspell_lib.VERBOSITY_MAX)
 
 if opts.gen_id:
-    print 'scspell-id: %s' % str(uuid.uuid1())
+    print('scspell-id: %s' % str(uuid.uuid1()))
 elif opts.dictionary is not None:
 	scspell_lib.set_dictionary(opts.dictionary)
 elif opts.export_filename is not None:
 	scspell_lib.export_dictionary(opts.export_filename)
-	print 'Exported dictionary to "%s".' % opts.export_filename
+	print('Exported dictionary to "%s".' % opts.export_filename)
 elif len(args) < 1:
     parser.print_help()
     sys.exit(1)
