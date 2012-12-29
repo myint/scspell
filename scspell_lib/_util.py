@@ -20,6 +20,10 @@
 """
 _util -- utility functions which may be useful across the source tree.
 """
+from __future__ import print_function
+
+import io
+
 
 # Settings for this session
 VERBOSITY_NORMAL = 1
@@ -31,13 +35,38 @@ def mutter(level, text):
     """Print text to the console, if the level is not higher than the
     current verbosity setting."""
     if level <= SETTINGS['verbosity']:
-        print text
+        print(text)
 
 
 def set_verbosity(value):
     """Set the verbosity level to a given integral value.  The constants
     VERBOSITY_* are good choices."""
     SETTINGS['verbosity'] = value
+
+
+def open_with_encoding(filename, encoding=None, mode='r'):
+    """Return opened file with a specific encoding."""
+    if not encoding:
+        encoding = detect_encoding(filename)
+
+    return io.open(filename, mode=mode, encoding=encoding,
+                   newline='')  # Preserve line endings
+
+
+def detect_encoding(filename):
+    """Return file encoding."""
+    try:
+        with open(filename, 'rb') as input_file:
+            from lib2to3.pgen2 import tokenize as lib2to3_tokenize
+            encoding = lib2to3_tokenize.detect_encoding(input_file.readline)[0]
+
+            # Check for correctness of encoding.
+            with open_with_encoding(filename, encoding) as input_file:
+                input_file.read()
+
+        return encoding
+    except (SyntaxError, LookupError, UnicodeDecodeError):
+        return 'latin-1'
 
 
 # scspell-id: b114984a-c7aa-40a8-9a53-b54fb6a52582
