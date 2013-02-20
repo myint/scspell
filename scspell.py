@@ -46,6 +46,8 @@ spell_group = optparse.OptionGroup(parser, "Spell Checking")
 spell_group.add_option('--override-dictionary', dest='override_filename',
         help='set location of dictionary to FILE, for current session only',
         metavar='FILE', action='store')
+spell_group.add_option('--report-only', dest='report', action='store_true',
+        help='Non-interactive report of spelling errors')
 parser.add_option_group(spell_group)
 
 config_group = optparse.OptionGroup(parser, "Configuration")
@@ -63,7 +65,7 @@ parser.add_option('-D', '--debug', dest='debug', action='store_true',
         help='print extra debugging information')
 
 
-(opts, args) = parser.parse_args()
+(opts, files) = parser.parse_args()
 if opts.debug:
     scspell_lib.set_verbosity(scspell_lib.VERBOSITY_MAX)
 
@@ -74,10 +76,10 @@ elif opts.dictionary is not None:
 elif opts.export_filename is not None:
     scspell_lib.export_dictionary(opts.export_filename)
     print('Exported dictionary to "%s".' % opts.export_filename)
-elif len(args) < 1:
+elif len(files) < 1:
     parser.error("No files specified")
 else:
-    scspell_lib.spell_check(args, opts.override_filename)
+    scspell_lib.spell_check(files, opts.override_filename, opts.report)
    
 
 # scspell-id: 285634e7-e5de-4e95-accc-ba639be2834e

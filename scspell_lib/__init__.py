@@ -302,7 +302,7 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
     return True
 
 
-def handle_failed_check(match_desc, filename, file_id, unmatched_subtokens, dicts, ignores):
+def handle_failed_check_interactively(match_desc, filename, file_id, unmatched_subtokens, dicts, ignores):
     """Handle a token which failed the spell check operation.
 
     :param match_desc: description of the token matching instance
@@ -358,7 +358,28 @@ def handle_failed_check(match_desc, filename, file_id, unmatched_subtokens, dict
     return (match_desc.get_string(), match_desc.get_ofs() + len(match_desc.get_token()))
 
 
-def spell_check_token(match_desc, filename, file_id, dicts, ignores):
+def report_failed_check(match_desc, filename, unmatched_subtokens):
+    """Handle a token which failed the spell check operation.
+
+    :param match_desc: description of the token matching instance
+    :type  match_desc: MatchDescriptor
+    :param filename: name of file containing the token
+    :param unmatched_subtokens: sequence of subtokens, each of which failed spell check
+    :returns: (text, ofs) where ``text`` is the (possibly modified) source contents and
+            ``ofs`` is the byte offset within the text where searching shall resume.
+    """
+    token = match_desc.get_token()
+    if len(unmatched_subtokens) == 1:
+        print("%s:%u: '%s' not found in dictionary (from token '%s')" % (filename, match_desc.get_line_num(), unmatched_subtokens[0], token))
+    else:
+        unmatched_subtokens = ', '.join("'%s'" % t for t in unmatched_subtokens)
+        print("%s:%u: %s were not found in the dictionary (from token '%s'" %
+            (filename, match_desc.get_line_num(), unmatched_subtokens, token))
+    # Default: text is unchanged
+    return (match_desc.get_string(), match_desc.get_ofs() + len(match_desc.get_token()))
+
+
+def spell_check_token(match_desc, filename, file_id, dicts, ignores, report_only):
     """Spell check a single token.
 
     :param match_desc: description of the token matching instance
@@ -378,14 +399,17 @@ def spell_check_token(match_desc, filename, file_id, dicts, ignores):
         unmatched_subtokens = [st for st in subtokens if len(st) > LEN_THRESHOLD
                                        and (not dicts.match(st, filename, file_id))
                                        and (st not in ignores)]
-        if unmatched_subtokens != []:
+        if unmatched_subtokens:
             unmatched_subtokens = make_unique(unmatched_subtokens)
-            return handle_failed_check(match_desc, filename, file_id, unmatched_subtokens,
+            if report_only:
+                return report_failed_check(match_desc, filename, unmatched_subtokens)
+            else:
+                return handle_failed_check_interactively(match_desc, filename, file_id, unmatched_subtokens,
                     dicts, ignores)
     return (match_desc.get_string(), match_desc.get_ofs() + len(token))
 
 
-def spell_check_file(filename, dicts, ignores):
+def spell_check_file(filename, dicts, ignores, report_only):
     """Spell check a single file.
 
     :param filename: name of the file to check
@@ -420,7 +444,7 @@ def spell_check_file(filename, dicts, ignores):
             # This is matching the file-id.  Skip over it.
             pos = m_id.end()
             continue
-        data, pos = spell_check_token(MatchDescriptor(data, m), filename, file_id, dicts, ignores)
+        data, pos = spell_check_token(MatchDescriptor(data, m), filename, file_id, dicts, ignores, report_only)
 
     # Write out the source file if it was modified
     if data != source_text:
@@ -506,7 +530,7 @@ def export_dictionary(filename):
     shutil.copyfile(locate_dictionary(), filename)
 
     
-def spell_check(source_filenames, override_dictionary=None):
+def spell_check(source_filenames, override_dictionary=None, report_only=False):
     """Run the interactive spell checker on the set of source_filenames.
     
     If override_dictionary is provided, it shall be used as a dictionary
@@ -520,7 +544,7 @@ def spell_check(source_filenames, override_dictionary=None):
     with CorporaFile(dict_file) as dicts:
         ignores = set()
         for f in source_filenames:
-            spell_check_file(f, dicts, ignores)
+            spell_check_file(f, dicts, ignores, report_only)
 
 
 __all__ = [
