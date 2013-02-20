@@ -319,7 +319,7 @@ class CorporaFile(object):
                     self._natural_dict.write(f)
             except IOError as e:
                 print(('Warning: unable to write dictionary file "%s". (Reason: %s)' %
-                        (filename, str(e))))
+                        (self._filename, str(e))))
 
 
     def _parse(self, lines):
