@@ -24,12 +24,12 @@ scspell -- an interactive, conservative spell-checker for source code.
 from __future__ import print_function
 
 
-import sys, uuid
-from optparse import OptionParser
+import uuid
+import optparse
 import scspell_lib
 
 
-parser = OptionParser(usage="""\
+parser = optparse.OptionParser(usage="""\
 %prog [options] [source files]
 
 Performs spell checking on all of the [source files].""",
@@ -41,15 +41,22 @@ Copyright (C) 2009 Paul Pelzl
 you are welcome to redistribute it under certain conditions; for details,
 see COPYING.txt as distributed with the program.
 """ % scspell_lib.VERSION)
-parser.add_option('--override-dictionary', dest='override_filename',
+
+spell_group = optparse.OptionGroup(parser, "Spell Checking")
+spell_group.add_option('--override-dictionary', dest='override_filename',
         help='set location of dictionary to FILE, for current session only',
         metavar='FILE', action='store')
-parser.add_option('--set-dictionary', dest='dictionary',
+parser.add_option_group(spell_group)
+
+config_group = optparse.OptionGroup(parser, "Configuration")
+config_group.add_option('--set-dictionary', dest='dictionary',
         help='permanently set location of dictionary to FILE', metavar='FILE',
         action='store')
-parser.add_option('--export-dictionary', dest='export_filename',
+config_group.add_option('--export-dictionary', dest='export_filename',
         help='export current dictionary to FILE', metavar='FILE',
         action='store')
+parser.add_option_group(config_group)
+
 parser.add_option('-i', '--gen-id', dest='gen_id', action='store_true',
         help='generate a unique file-id string')
 parser.add_option('-D', '--debug', dest='debug', action='store_true',
@@ -68,8 +75,7 @@ elif opts.export_filename is not None:
     scspell_lib.export_dictionary(opts.export_filename)
     print('Exported dictionary to "%s".' % opts.export_filename)
 elif len(args) < 1:
-    parser.print_help()
-    sys.exit(1)
+    parser.error("No files specified")
 else:
     scspell_lib.spell_check(args, opts.override_filename)
    
