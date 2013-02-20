@@ -22,12 +22,12 @@ corpus.py
 Defines methods for storing dictionaries and performing searches against them.
 """
 from __future__ import print_function
-
-
 from __future__ import with_statement
+
+
 import os, re, sys
 from bisect import bisect_left
-from ._util import *
+from . import _util
 
 
 DICT_TYPE_NATURAL  = 'NATURAL'       # Identifies natural language dictionary
@@ -187,7 +187,7 @@ class CorporaFile(object):
         self._fileids        = {}       # Associates each file-id with a file-specific dictionary
 
         try:
-            with open_with_encoding(filename, mode='r') as f:
+            with _util.open_with_encoding(filename, mode='r') as f:
                 lines = [line.strip(' \r\n') for line in f.readlines()]
             return self._parse(lines)
         except IOError as e:
@@ -214,20 +214,20 @@ class CorporaFile(object):
         (_, ext) = os.path.splitext(filename.lower())
         try:
             corpus = self._extensions[ext]
-            mutter(VERBOSITY_DEBUG, '(Matching against filetype "%s".)' % corpus.get_name())
+            _util.mutter(_util.VERBOSITY_DEBUG, '(Matching against filetype "%s".)' % corpus.get_name())
             if corpus.match(token):
                 return True
         except KeyError:
-            mutter(VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % ext)
+            _util.mutter(_util.VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % ext)
 
         if file_id is not None:
             try:
                 corpus = self._fileids[file_id]
-                mutter(VERBOSITY_DEBUG, '(Matching against file-id "%s".)' % file_id)
+                _util.mutter(_util.VERBOSITY_DEBUG, '(Matching against file-id "%s".)' % file_id)
                 if corpus.match(token):
                     return True
             except KeyError:
-                mutter(VERBOSITY_DEBUG, '(No file-id match for "%s".)' % file_id)
+                _util.mutter(_util.VERBOSITY_DEBUG, '(No file-id match for "%s".)' % file_id)
 
         return False
 
@@ -246,11 +246,11 @@ class CorporaFile(object):
         """
         try:
             corpus = self._extensions[extension]
-            mutter(VERBOSITY_DEBUG, '(Adding to filetype "%s".)' % corpus.get_name())
+            _util.mutter(_util.VERBOSITY_DEBUG, '(Adding to filetype "%s".)' % corpus.get_name())
             corpus.add(token)
             return True
         except KeyError:
-            mutter(VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % extension)
+            _util.mutter(_util.VERBOSITY_DEBUG, '(No filetype match for extension "%s".)' % extension)
             return False
         
     
@@ -260,10 +260,10 @@ class CorporaFile(object):
         """
         try:
             corpus = self._fileids[file_id]
-            mutter(VERBOSITY_DEBUG, '(Adding to file-id "%s".)' % file_id)
+            _util.mutter(_util.VERBOSITY_DEBUG, '(Adding to file-id "%s".)' % file_id)
             corpus.add(token)
         except KeyError:
-            mutter(VERBOSITY_DEBUG, '(No file-id match for "%s"; creating new.)' % file_id)
+            _util.mutter(_util.VERBOSITY_DEBUG, '(No file-id match for "%s"; creating new.)' % file_id)
             corpus = ExactMatchCorpus(DICT_TYPE_FILEID, file_id, [])
             self._fileid_dicts.append(corpus)
             self._fileids[file_id] = corpus
@@ -309,7 +309,7 @@ class CorporaFile(object):
             dirty = dirty or corpus.is_dirty()
         if dirty:
             try:
-                with open_with_encoding(self._filename, mode='w') as f:
+                with _util.open_with_encoding(self._filename, mode='w') as f:
                     for corpus in self._filetype_dicts:
                         corpus.write(f)
                     for corpus in self._fileid_dicts:
@@ -336,7 +336,7 @@ class CorporaFile(object):
 
         if dict_type == DICT_TYPE_NATURAL:
             self._natural_dict = PrefixMatchCorpus(DICT_TYPE_NATURAL, metadata, tokens)
-            mutter(VERBOSITY_DEBUG, '(Loaded natural language dictionary with %u tokens.)' %
+            _util.mutter(_util.VERBOSITY_DEBUG, '(Loaded natural language dictionary with %u tokens.)' %
                     len(tokens))
             return offset
 
@@ -346,7 +346,7 @@ class CorporaFile(object):
             self._filetype_dicts.append(corpus)
             for ext in extensions:
                 self._extensions[ext] = corpus
-            mutter(VERBOSITY_DEBUG, '(Loaded file-type dictionary "%s" with %u tokens.)' %
+            _util.mutter(_util.VERBOSITY_DEBUG, '(Loaded file-type dictionary "%s" with %u tokens.)' %
                     (type_descr, len(tokens)))
             return offset
 
@@ -354,7 +354,7 @@ class CorporaFile(object):
             corpus = ExactMatchCorpus(DICT_TYPE_FILEID, metadata, tokens)
             self._fileid_dicts.append(corpus)
             self._fileids[metadata] = corpus
-            mutter(VERBOSITY_DEBUG, '(Loaded file-id dictionary "%s" with %u tokens.)' %
+            _util.mutter(_util.VERBOSITY_DEBUG, '(Loaded file-id dictionary "%s" with %u tokens.)' %
                 (metadata, len(tokens)))
             return offset
 

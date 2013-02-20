@@ -24,7 +24,6 @@ from __future__ import print_function
 from __future__ import with_statement
 
 import os, re, sys, shutil
-from bisect import bisect_left
 
 try:
     import ConfigParser
@@ -34,7 +33,10 @@ except ImportError:
 
 from . import _portable
 from ._corpus import CorporaFile
-from ._util import *
+from . import _util
+from ._util import set_verbosity
+from ._util import VERBOSITY_NORMAL
+from ._util import VERBOSITY_MAX
 
 
 try:
@@ -393,7 +395,7 @@ def spell_check_file(filename, dicts, ignores):
     """
     fq_filename = os.path.normcase(os.path.realpath(filename))
     try:
-        with open_with_encoding(fq_filename) as source_file:
+        with _util.open_with_encoding(fq_filename) as source_file:
             source_text = source_file.read()
     except IOError as e:
         print('Error: can\'t read source file "%s"; skipping.  (Reason: %s)' % \
@@ -405,7 +407,7 @@ def spell_check_file(filename, dicts, ignores):
     m_id    = file_id_regex.search(source_text)
     if m_id is not None:
         file_id = m_id.group(1)
-        mutter(VERBOSITY_DEBUG, '(File contains id "%s".)' % file_id)
+        _util.mutter(_util.VERBOSITY_DEBUG, '(File contains id "%s".)' % file_id)
     
     # Search for tokens to spell-check
     data = source_text
@@ -422,7 +424,7 @@ def spell_check_file(filename, dicts, ignores):
 
     # Write out the source file if it was modified
     if data != source_text:
-        with open_with_encoding(fq_filename, mode='w') as source_file:
+        with _util.open_with_encoding(fq_filename, mode='w') as source_file:
             try:
                 source_file.write(data)
             except IOError as e:
@@ -446,7 +448,7 @@ def locate_dictionary():
     """
     verify_user_data_dir()
     try:
-        f = open_with_encoding(SCSPELL_CONF, encoding='utf-8')
+        f = _util.open_with_encoding(SCSPELL_CONF, encoding='utf-8')
     except IOError:
         return DICT_DEFAULT_LOC
 
@@ -492,7 +494,7 @@ def set_dictionary(filename):
         pass
     config.set(CONFIG_SECTION, 'dictionary', filename)
 
-    with open_with_encoding(SCSPELL_CONF, encoding='utf-8', mode='w') as f:
+    with _util.open_with_encoding(SCSPELL_CONF, encoding='utf-8', mode='w') as f:
         config.write(f)
 
 
@@ -523,8 +525,6 @@ def spell_check(source_filenames, override_dictionary=None):
 
 __all__ = [
     'spell_check',
-    'set_keyword_dict',
-    'export_keyword_dict',
     'set_verbosity',
     'VERSION',
     'VERBOSITY_NORMAL',
