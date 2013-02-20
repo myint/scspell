@@ -46,10 +46,10 @@ parser.add_option('--override-dictionary', dest='override_filename',
         metavar='FILE', action='store')
 parser.add_option('--set-dictionary', dest='dictionary',
         help='permanently set location of dictionary to FILE', metavar='FILE',
-		action='store')
+        action='store')
 parser.add_option('--export-dictionary', dest='export_filename',
         help='export current dictionary to FILE', metavar='FILE',
-		action='store')
+        action='store')
 parser.add_option('-i', '--gen-id', dest='gen_id', action='store_true',
         help='generate a unique file-id string')
 parser.add_option('-D', '--debug', dest='debug', action='store_true',
@@ -63,15 +63,15 @@ if opts.debug:
 if opts.gen_id:
     print('scspell-id: %s' % str(uuid.uuid1()))
 elif opts.dictionary is not None:
-	scspell_lib.set_dictionary(opts.dictionary)
+    scspell_lib.set_dictionary(opts.dictionary)
 elif opts.export_filename is not None:
-	scspell_lib.export_dictionary(opts.export_filename)
-	print('Exported dictionary to "%s".' % opts.export_filename)
+    scspell_lib.export_dictionary(opts.export_filename)
+    print('Exported dictionary to "%s".' % opts.export_filename)
 elif len(args) < 1:
     parser.print_help()
     sys.exit(1)
 else:
-	scspell_lib.spell_check(args, opts.override_filename)
+    scspell_lib.spell_check(args, opts.override_filename)
    
 
 # scspell-id: 285634e7-e5de-4e95-accc-ba639be2834e
