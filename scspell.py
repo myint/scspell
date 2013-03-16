@@ -33,7 +33,7 @@ parser = optparse.OptionParser(usage="""\
 %prog [options] [source files]
 
 Performs spell checking on all of the [source files].""",
-version = """\
+                               version="""\
 %%prog v%s
 Copyright (C) 2009 Paul Pelzl
 
@@ -43,26 +43,29 @@ see COPYING.txt as distributed with the program.
 """ % scspell_lib.VERSION)
 
 spell_group = optparse.OptionGroup(parser, "Spell Checking")
-spell_group.add_option('--override-dictionary', dest='override_filename',
-        help='set location of dictionary to FILE, for current session only',
-        metavar='FILE', action='store')
+spell_group.add_option(
+    '--override-dictionary', dest='override_filename',
+    help='set location of dictionary to FILE, for current session only',
+    metavar='FILE', action='store')
 spell_group.add_option('--report-only', dest='report', action='store_true',
-        help='Non-interactive report of spelling errors')
+                       help='Non-interactive report of spelling errors')
 parser.add_option_group(spell_group)
 
 config_group = optparse.OptionGroup(parser, "Configuration")
-config_group.add_option('--set-dictionary', dest='dictionary',
-        help='permanently set location of dictionary to FILE', metavar='FILE',
-        action='store')
-config_group.add_option('--export-dictionary', dest='export_filename',
-        help='export current dictionary to FILE', metavar='FILE',
-        action='store')
+config_group.add_option(
+    '--set-dictionary', dest='dictionary',
+    help='permanently set location of dictionary to FILE', metavar='FILE',
+    action='store')
+config_group.add_option(
+    '--export-dictionary', dest='export_filename',
+    help='export current dictionary to FILE', metavar='FILE',
+    action='store')
 parser.add_option_group(config_group)
 
 parser.add_option('-i', '--gen-id', dest='gen_id', action='store_true',
-        help='generate a unique file-id string')
+                  help='generate a unique file-id string')
 parser.add_option('-D', '--debug', dest='debug', action='store_true',
-        help='print extra debugging information')
+                  help='print extra debugging information')
 
 
 (opts, files) = parser.parse_args()
@@ -80,7 +83,6 @@ elif len(files) < 1:
     parser.error("No files specified")
 else:
     scspell_lib.spell_check(files, opts.override_filename, opts.report)
-   
+
 
 # scspell-id: 285634e7-e5de-4e95-accc-ba639be2834e
-

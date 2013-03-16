@@ -23,7 +23,10 @@ scspell -- an interactive, conservative spell-checker for source code.
 from __future__ import print_function
 from __future__ import with_statement
 
-import os, re, sys, shutil
+import os
+import re
+import sys
+import shutil
 
 try:
     import ConfigParser
@@ -46,21 +49,33 @@ except NameError:
 
 
 VERSION = '0.1.0'
-CONFIG_SECTION = 'Settings'     # Name of scspell.conf section header
-CONTEXT_SIZE  = 4               # Size of context printed upon request
-LEN_THRESHOLD = 3               # Subtokens shorter than 4 characters are likely to be abbreviations
-CTRL_C = '\x03'                 # Special key codes returned from getch()
+
+# Name of scspell.conf section header
+CONFIG_SECTION = 'Settings'
+
+# Size of context printed upon request
+CONTEXT_SIZE = 4
+
+# Subtokens shorter than 4 characters are likely to be abbreviations
+LEN_THRESHOLD = 3
+
+# Special key codes returned from getch()
+CTRL_C = '\x03'
 CTRL_D = '\x04'
 CTRL_Z = '\x1a'
 
-USER_DATA_DIR    = _portable.get_data_dir('scspell')
+USER_DATA_DIR = _portable.get_data_dir('scspell')
 DICT_DEFAULT_LOC = os.path.join(USER_DATA_DIR, 'dictionary.txt')
-SCSPELL_DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data'))
-SCSPELL_CONF     = os.path.join(USER_DATA_DIR, 'scspell.conf')
+SCSPELL_DATA_DIR = os.path.normpath(
+    os.path.join(
+        os.path.dirname(
+            __file__),
+        'data'))
+SCSPELL_CONF = os.path.join(USER_DATA_DIR, 'scspell.conf')
 
 # Treat anything alphanumeric as a token of interest, as long as it is not
-# immediately preceded by a single backslash.  (The string "\ntext" should match
-# on "text" rather than "ntext".)
+# immediately preceded by a single backslash.  (The string "\ntext" should
+# match on "text" rather than "ntext".)
 token_regex = re.compile(r'(?<![^\\]\\)\w+')
 
 # Hex digits will be treated as a special case, because they can look like
@@ -69,7 +84,7 @@ hex_regex = re.compile(r'0x[0-9a-fA-F]+')
 
 # We assume that tokens will be split using either underscores,
 # digits, or camelCase conventions (or both)
-us_regex         = re.compile(r'[_\d]+')
+us_regex = re.compile(r'[_\d]+')
 camel_word_regex = re.compile(r'([A-Z][a-z]*)')
 
 # File-id specifiers take this form
@@ -82,10 +97,10 @@ class MatchDescriptor(object):
     """
 
     def __init__(self, text, matchobj):
-        self._data     = text
-        self._pos      = matchobj.start()
-        self._token    = matchobj.group()
-        self._context  = None
+        self._data = text
+        self._pos = matchobj.start()
+        self._token = matchobj.group()
+        self._context = None
         self._line_num = None
 
     def get_token(self):
@@ -104,13 +119,13 @@ class MatchDescriptor(object):
         return self._data[:self._pos]
 
     def get_remainder(self):
-        """Get the string consisting of this match and all remaining characters."""
+        """Get the string consisting of this match and all remaining
+        characters."""
         return self._data[self._pos:]
 
     def get_context(self):
-        """Compute the lines of context associated with this match, as a sequence of
-        (line_num, line_string) pairs.
-        """
+        """Compute the lines of context associated with this match, as a
+        sequence of (line_num, line_string) pairs."""
         if self._context is not None:
             return self._context
 
@@ -133,8 +148,10 @@ class MatchDescriptor(object):
             self._line_num = len(lines)
 
         # Compute the set of lines surrounding this line number
-        self._context = [(i+1, line.strip('\r\n')) for (i, line) in enumerate(lines) if 
-                (i+1 - self._line_num) in range(-CONTEXT_SIZE // 2, CONTEXT_SIZE // 2 + 1)]
+        self._context = [
+            (i+1, line.strip('\r\n'))for (i, line) in enumerate(lines)
+            if (i+1 - self._line_num) in
+            range(-CONTEXT_SIZE // 2, CONTEXT_SIZE // 2 + 1)]
         return self._context
 
     def get_line_num(self):
@@ -147,6 +164,7 @@ class MatchDescriptor(object):
 def make_unique(items):
     """Remove duplicate items from a list, while preserving list order."""
     seen = set()
+
     def first_occurrence(i):
         if i not in seen:
             seen.add(i)
@@ -158,8 +176,8 @@ def make_unique(items):
 def decompose_token(token):
     """Divide a token into a list of strings of letters.
 
-    Tokens are divided by underscores and digits, and capital letters will begin
-    new subtokens.
+    Tokens are divided by underscores and digits, and capital letters will
+    begin new subtokens.
 
     :param token: string to be divided
     :returns: sequence of subtoken strings
@@ -169,15 +187,17 @@ def decompose_token(token):
         # This looks like a CONSTANT_DEFINE_OF_SOME_SORT
         subtokens = us_parts
     else:
-        camelcase_parts = [camel_word_regex.split(us_part) for us_part in us_parts]
+        camelcase_parts = [
+            camel_word_regex.split(
+                us_part) for us_part in us_parts]
         subtokens = sum(camelcase_parts, [])
     # This use of split() will create many empty strings
     return [st.lower() for st in subtokens if st != '']
-    
+
 
 def handle_new_filetype(extension, dicts):
     """Handle creation of a new file-type for the given extension.
-    
+
     :returns: True if created, False if canceled.
     """
     while True:
@@ -240,7 +260,8 @@ def handle_new_extension(ext, dicts):
 def handle_add(unmatched_subtokens, filename, file_id, dicts):
     """Handle addition of one or more subtokens to a dictionary.
 
-    :param unmatched_subtokens: sequence of subtokens, each of which failed spell check
+    :param unmatched_subtokens: sequence of subtokens, each of which failed
+           spell check
     :param filename: name of file containing the token
     :param file_id: unique identifier for current file
     :type  file_id: string or None
@@ -302,7 +323,8 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
     return True
 
 
-def handle_failed_check_interactively(match_desc, filename, file_id, unmatched_subtokens, dicts, ignores):
+def handle_failed_check_interactively(
+        match_desc, filename, file_id, unmatched_subtokens, dicts, ignores):
     """Handle a token which failed the spell check operation.
 
     :param match_desc: description of the token matching instance
@@ -310,16 +332,19 @@ def handle_failed_check_interactively(match_desc, filename, file_id, unmatched_s
     :param filename: name of file containing the token
     :param file_id: unique identifier for current file
     :type  file_id: string or None
-    :param unmatched_subtokens: sequence of subtokens, each of which failed spell check
+    :param unmatched_subtokens: sequence of subtokens, each of which failed
+                                spell check
     :param dicts: dictionary set against which to perform matching
     :type  dicts: CorporaFile
     :param ignores: set of tokens to ignore for this session
-    :returns: (text, ofs) where ``text`` is the (possibly modified) source contents and
-            ``ofs`` is the byte offset within the text where searching shall resume.
+    :returns: (text, ofs) where ``text`` is the (possibly modified) source
+              contents and ``ofs`` is the byte offset within the text where
+              searching shall resume.
     """
     token = match_desc.get_token()
-    print("%s:%u: Unmatched '%s' --> {%s}" % (filename, match_desc.get_line_num(), token, 
-                ', '.join([st for st in unmatched_subtokens])))
+    print("%s:%u: Unmatched '%s' --> {%s}" %
+          (filename, match_desc.get_line_num(), token,
+           ', '.join([st for st in unmatched_subtokens])))
     match_regex = re.compile(re.escape(match_desc.get_token()))
     while True:
         print("""\
@@ -342,10 +367,12 @@ def handle_failed_check_interactively(match_desc, filename, file_id, unmatched_s
       (Canceled.)\n""")
             else:
                 ignores.add(replacement.lower())
-                tail = re.sub(match_regex, replacement, match_desc.get_remainder(),
-                        1 if ch == 'r' else 0)
+                tail = re.sub(
+                    match_regex, replacement, match_desc.get_remainder(),
+                    1 if ch == 'r' else 0)
                 print()
-                return (match_desc.get_prefix() + tail, match_desc.get_ofs() + len(replacement))
+                return (match_desc.get_prefix() + tail,
+                        match_desc.get_ofs() + len(replacement))
         elif ch == 'a':
             if handle_add(unmatched_subtokens, filename, file_id, dicts):
                 break
@@ -355,7 +382,8 @@ def handle_failed_check_interactively(match_desc, filename, file_id, unmatched_s
             print()
     print()
     # Default: text is unchanged
-    return (match_desc.get_string(), match_desc.get_ofs() + len(match_desc.get_token()))
+    return (match_desc.get_string(),
+            match_desc.get_ofs() + len(match_desc.get_token()))
 
 
 def report_failed_check(match_desc, filename, unmatched_subtokens):
@@ -370,16 +398,23 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
     """
     token = match_desc.get_token()
     if len(unmatched_subtokens) == 1:
-        print("%s:%u: '%s' not found in dictionary (from token '%s')" % (filename, match_desc.get_line_num(), unmatched_subtokens[0], token))
+        print(
+            "%s:%u: '%s' not found in dictionary (from token '%s')" %
+            (filename, match_desc.get_line_num(), unmatched_subtokens[0],
+             token))
     else:
-        unmatched_subtokens = ', '.join("'%s'" % t for t in unmatched_subtokens)
+        unmatched_subtokens = ', '.join(
+            "'%s'" %
+            t for t in unmatched_subtokens)
         print("%s:%u: %s were not found in the dictionary (from token '%s'" %
-            (filename, match_desc.get_line_num(), unmatched_subtokens, token))
+             (filename, match_desc.get_line_num(), unmatched_subtokens, token))
     # Default: text is unchanged
-    return (match_desc.get_string(), match_desc.get_ofs() + len(match_desc.get_token()))
+    return (match_desc.get_string(),
+            match_desc.get_ofs() + len(match_desc.get_token()))
 
 
-def spell_check_token(match_desc, filename, file_id, dicts, ignores, report_only):
+def spell_check_token(
+        match_desc, filename, file_id, dicts, ignores, report_only):
     """Spell check a single token.
 
     :param match_desc: description of the token matching instance
@@ -396,15 +431,18 @@ def spell_check_token(match_desc, filename, file_id, dicts, ignores, report_only
     token = match_desc.get_token()
     if (token.lower() not in ignores) and (hex_regex.match(token) is None):
         subtokens = decompose_token(token)
-        unmatched_subtokens = [st for st in subtokens if len(st) > LEN_THRESHOLD
-                                       and (not dicts.match(st, filename, file_id))
-                                       and (st not in ignores)]
+        unmatched_subtokens = [
+            st for st in subtokens if len(st) > LEN_THRESHOLD and
+            (not dicts.match(st, filename, file_id)) and
+            (st not in ignores)]
         if unmatched_subtokens:
             unmatched_subtokens = make_unique(unmatched_subtokens)
             if report_only:
-                return report_failed_check(match_desc, filename, unmatched_subtokens)
+                return report_failed_check(match_desc, filename,
+                                           unmatched_subtokens)
             else:
-                return handle_failed_check_interactively(match_desc, filename, file_id, unmatched_subtokens,
+                return handle_failed_check_interactively(
+                    match_desc, filename, file_id, unmatched_subtokens,
                     dicts, ignores)
     return (match_desc.get_string(), match_desc.get_ofs() + len(token))
 
@@ -422,29 +460,35 @@ def spell_check_file(filename, dicts, ignores, report_only):
         with _util.open_with_encoding(fq_filename) as source_file:
             source_text = source_file.read()
     except IOError as e:
-        print('Error: can\'t read source file "%s"; skipping.  (Reason: %s)' % \
-                    (filename, str(e)))
+        print('Error: can\'t read source file "%s"; skipping.  (Reason: %s)' %
+             (filename, str(e)))
         return
 
     # Look for a file ID
     file_id = None
-    m_id    = file_id_regex.search(source_text)
+    m_id = file_id_regex.search(source_text)
     if m_id is not None:
         file_id = m_id.group(1)
-        _util.mutter(_util.VERBOSITY_DEBUG, '(File contains id "%s".)' % file_id)
-    
+        _util.mutter(
+            _util.VERBOSITY_DEBUG,
+            '(File contains id "%s".)' %
+            file_id)
+
     # Search for tokens to spell-check
     data = source_text
-    pos  = 0
+    pos = 0
     while True:
         m = token_regex.search(data, pos)
         if m is None:
             break
-        if m_id is not None and m.start() >= m_id.start() and m.start() < m_id.end():
+        if (m_id is not None and
+                m.start() >= m_id.start() and
+                m.start() < m_id.end()):
             # This is matching the file-id.  Skip over it.
             pos = m_id.end()
             continue
-        data, pos = spell_check_token(MatchDescriptor(data, m), filename, file_id, dicts, ignores, report_only)
+        data, pos = spell_check_token(MatchDescriptor(
+            data, m), filename, file_id, dicts, ignores, report_only)
 
     # Write out the source file if it was modified
     if data != source_text:
@@ -454,7 +498,7 @@ def spell_check_file(filename, dicts, ignores, report_only):
             except IOError as e:
                 print(str(e))
                 return
-            
+
 
 def verify_user_data_dir():
     """Verify that the user data directory is present, or create one
@@ -463,7 +507,11 @@ def verify_user_data_dir():
     if not os.path.exists(USER_DATA_DIR):
         print('Creating new personal dictionary in %s .\n' % USER_DATA_DIR)
         os.makedirs(USER_DATA_DIR)
-        shutil.copyfile(os.path.join(SCSPELL_DATA_DIR, 'dictionary.txt'), DICT_DEFAULT_LOC)
+        shutil.copyfile(
+            os.path.join(
+                SCSPELL_DATA_DIR,
+                'dictionary.txt'),
+            DICT_DEFAULT_LOC)
 
 
 def locate_dictionary():
@@ -490,8 +538,8 @@ def locate_dictionary():
         if os.path.isabs(loc):
             return loc
         else:
-            print(('Error while parsing "%s": dictionary must be an absolute path.' %
-                    SCSPELL_CONF))
+            print('Error while parsing "%s": dictionary must be an absolute '
+                  'path.' % SCSPELL_CONF)
             sys.exit(1)
     except ConfigParser.Error:
         return DICT_DEFAULT_LOC
@@ -502,7 +550,10 @@ def set_dictionary(filename):
 
     :returns: None
     """
-    filename = os.path.realpath(os.path.expandvars(os.path.expanduser(filename)))
+    filename = os.path.realpath(
+        os.path.expandvars(
+            os.path.expanduser(
+                filename)))
 
     verify_user_data_dir()
     config = ConfigParser.RawConfigParser()
@@ -518,7 +569,8 @@ def set_dictionary(filename):
         pass
     config.set(CONFIG_SECTION, 'dictionary', filename)
 
-    with _util.open_with_encoding(SCSPELL_CONF, encoding='utf-8', mode='w') as f:
+    with _util.open_with_encoding(SCSPELL_CONF, encoding='utf-8',
+                                  mode='w') as f:
         config.write(f)
 
 
@@ -529,17 +581,18 @@ def export_dictionary(filename):
     """
     shutil.copyfile(locate_dictionary(), filename)
 
-    
+
 def spell_check(source_filenames, override_dictionary=None, report_only=False):
     """Run the interactive spell checker on the set of source_filenames.
-    
+
     If override_dictionary is provided, it shall be used as a dictionary
     filename for this session only.
 
     :returns: None
     """
     verify_user_data_dir()
-    dict_file = locate_dictionary() if override_dictionary is None else override_dictionary
+    dict_file = locate_dictionary(
+    ) if override_dictionary is None else override_dictionary
     dict_file = os.path.expandvars(os.path.expanduser(dict_file))
     with CorporaFile(dict_file) as dicts:
         ignores = set()
@@ -557,4 +610,3 @@ __all__ = [
 
 
 # scspell-id: 8bd41bba-f84b-4b8f-880c-4089e37b611a
-

@@ -27,9 +27,10 @@ import io
 
 # Settings for this session
 VERBOSITY_NORMAL = 1
-VERBOSITY_DEBUG  = 2
-VERBOSITY_MAX    = VERBOSITY_DEBUG
-SETTINGS = {'verbosity' : VERBOSITY_NORMAL}
+VERBOSITY_DEBUG = 2
+VERBOSITY_MAX = VERBOSITY_DEBUG
+SETTINGS = {'verbosity': VERBOSITY_NORMAL}
+
 
 def mutter(level, text):
     """Print text to the console, if the level is not higher than the
@@ -70,4 +71,3 @@ def detect_encoding(filename):
 
 
 # scspell-id: b114984a-c7aa-40a8-9a53-b54fb6a52582
-

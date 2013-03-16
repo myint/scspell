@@ -21,16 +21,20 @@
 portable -- contains functions for hiding differences between platforms.
 """
 
-import os, sys
+import os
+import sys
 
 # Cross-platform version of getch()
 try:
     import msvcrt
+
     def getch():
         return msvcrt.getch()
 
 except ImportError:
-    import tty, termios
+    import tty
+    import termios
+
     def getch():
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
@@ -46,12 +50,11 @@ def get_data_dir(progname):
     """Retrieves a platform-appropriate data directory for the specified program."""
     if sys.platform == 'win32':
         parent_dir = os.getenv('APPDATA')
-        prog_dir   = progname
+        prog_dir = progname
     else:
         parent_dir = os.getenv('HOME')
-        prog_dir   = '.' + progname
+        prog_dir = '.' + progname
     return os.path.normpath(os.path.join(parent_dir, prog_dir))
 
 
 # scspell-id: 8e6d38db-1ea4-4938-8c1f-f2e2a312f071
-

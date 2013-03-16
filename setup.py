@@ -13,6 +13,7 @@ from scspell_lib import VERSION
 
 disable_rename = False
 
+
 class ScriptInstaller(distutils.command.install_scripts.install_scripts):
     """Override distutils' ``install_scripts``, causing it
     to elide the .py script extension when installing on POSIX
@@ -28,7 +29,7 @@ class ScriptInstaller(distutils.command.install_scripts.install_scripts):
                     if not self.dry_run:
                         os.rename(script, base)
 
-                
+
 class WinInstCreator(distutils.command.bdist_wininst.bdist_wininst):
     """Disables the ScriptInstaller override when generating a
     Windows installer while using a POSIX platform.
@@ -37,7 +38,6 @@ class WinInstCreator(distutils.command.bdist_wininst.bdist_wininst):
         global disable_rename
         disable_rename = True
         distutils.command.bdist_wininst.bdist_wininst.run(self)
-
 
 
 app_name = 'scspell'
@@ -55,11 +55,11 @@ setup(
 
     packages=['scspell_lib'],
     scripts=['scspell.py'],
-    package_data={'scspell_lib' : ['data/*']},
+    package_data={'scspell_lib': ['data/*']},
 
     cmdclass={
-        'install_scripts' : ScriptInstaller,
-        'bdist_wininst'   : WinInstCreator },
+        'install_scripts': ScriptInstaller,
+        'bdist_wininst': WinInstCreator},
 
     license='http://www.gnu.org/licenses/old-licenses/gpl-2.0.html',
     classifiers=[
@@ -77,4 +77,3 @@ setup(
 
 
 # scspell-id: 2f47a8a0-18e4-4f7a-91ef-74ad909cf415
-
