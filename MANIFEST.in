@@ -1,2 +1,2 @@
-include scspell.py README.txt COPYING.txt SCOWL-LICENSE.txt
+include scspell.py README.rst COPYING.txt SCOWL-LICENSE.txt
 recursive-include scspell_lib *
