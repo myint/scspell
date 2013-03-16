@@ -196,7 +196,7 @@ class CorporaFile(object):
         try:
             with _util.open_with_encoding(filename, mode='r') as f:
                 lines = [line.strip(' \r\n') for line in f.readlines()]
-            return self._parse(lines)
+            self._parse(lines)
         except IOError as e:
             print(
                 'Warning: unable to read dictionary file "%s". (Reason: %s)' %
