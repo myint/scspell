@@ -47,19 +47,19 @@ To begin the spell checker, run ::
 For each spell check failure, you will see output much like this::
 
     filename.c:27: Unmatched 'someMispeldVaraible' -> {mispeld, varaible}
-    
+
 In other words, the token "``someMispeldVaraible``" was found on line 27
 of ``filename.c``, and it contains subtokens "``mispeld``" and
 "``varaible``" which both failed the spell-checking algorithm.  You will
 be prompted for an action to take:
-    
+
     (i)gnore
         Skip to the next unmatched token, without taking any action.
 
     (I)gnore all
         Skip over this token every time it is encountered, for the
         remainder of this spell check session.
-        
+
     (r)eplace
         Enter some text to use as a replacement for this token, and replace
         only the token at this point in the file.
@@ -82,7 +82,7 @@ prompted with the following options for every subtoken:
 
     (b)ack
         Return to the previous menu, without taking any action.
-        
+
     (i)gnore
         Skip to the next subtoken, without taking any action.
 
@@ -175,7 +175,7 @@ The English dictionary distributed with scspell is derived from the
 Bugs, etc.
 ------------
 
-**scspell** is `hosted on Launchpad <http://launchpad.net/scspell>`_; 
+**scspell** is `hosted on Launchpad <http://launchpad.net/scspell>`_;
 this would be a great place to file bug reports and feature requests or track
 development via `bzr <http://bazaar-vcs.org>`_.  If that's not your style, just
 send an email to Paul Pelzl <``pelzlpj at gmail dot com``> .

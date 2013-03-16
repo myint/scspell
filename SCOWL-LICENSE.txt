@@ -211,7 +211,7 @@ were not found anywhere else.
 Accent information was taken from UKACD.
 
 My VARCON package was used to create the American, British, and
-Canadian word list. 
+Canadian word list.
 
 Since the original word lists used used in the VARCON package came
 from the Ispell distribution they are under the Ispell copyright:
