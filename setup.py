@@ -41,7 +41,7 @@ class WinInstCreator(distutils.command.bdist_wininst.bdist_wininst):
 
 
 app_name = 'scspell'
-with open('README.txt', 'r') as readme_file:
+with open('README.rst', 'r') as readme_file:
     descr = readme_file.read()
 
 setup(
