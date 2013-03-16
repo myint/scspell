@@ -5,7 +5,7 @@ Test scspell.
 Run once in case .scspell is not yet created.
 
     $ echo 'ignore' > ignore.txt
-    $ $SCSPELL ignore.txt >& /dev/null
+    $ $SCSPELL ignore.txt >& ignore_output
 
 Test spelling mistake.
 
