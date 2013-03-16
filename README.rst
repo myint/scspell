@@ -141,10 +141,9 @@ by using the ``--override-dictionary`` option::
 Installation
 ============
 
-If you have `setuptools <http://pypi.python.org/pypi/setuptools>`_
-installed, then you can install **scspell** via::
+Install **scspell** via pip::
 
-    $ easy_install scspell
+    $ pip install git+https://github.com/myint/scspell
 
 Alternatively, download and unpack the source archive, switch to the
 archive root directory, and run the installation script::
