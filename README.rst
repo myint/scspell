@@ -1,3 +1,10 @@
+scspell
+=======
+
+.. image:: https://travis-ci.org/myint/scspell.png?branch=master
+   :target: https://travis-ci.org/myint/scspell
+   :alt: Build status
+
 **scspell** is a spell checker for source code.  It does not try to be
 particularly smart--rather, it does the simplest thing that can possibly work:
 
@@ -31,7 +38,7 @@ to three different sub-dictionaries may be searched for any given file:
        are not likely to be found in more than a handful of unique files.
 
 Usage
-=====
+-----
 
 To begin the spell checker, run ::
 
@@ -139,7 +146,7 @@ by using the ``--override-dictionary`` option::
     $ scspell --override-dictionary=/path/to/dictionary_file.txt source_file1 ...
 
 Installation
-============
+------------
 
 Install **scspell** via pip::
 
@@ -155,9 +162,8 @@ directory that requires root privileges::
 
     $ sudo python setup.py install
 
-
 License
-=======
+-------
 
 **scspell** is Free Software, licensed under Version 2 of the GNU General
 Public License; see ``COPYING.txt`` for details.
@@ -166,9 +172,8 @@ The English dictionary distributed with scspell is derived from the
 `SCOWL word lists <http://wordlist.sourceforge.net>`_ .  See
 ``SCOWL-LICENSE.txt`` for the myriad licenses that apply to that dictionary.
 
-
 Bugs, etc.
-============
+------------
 
 **scspell** is `hosted on Launchpad <http://launchpad.net/scspell>`_; 
 this would be a great place to file bug reports and feature requests or track
@@ -177,4 +182,3 @@ send an email to Paul Pelzl <``pelzlpj at gmail dot com``> .
 
 Patches adding the most common keywords/APIs for popular programming languages
 would be most welcome.
-
