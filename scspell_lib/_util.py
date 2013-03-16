@@ -33,15 +33,18 @@ SETTINGS = {'verbosity': VERBOSITY_NORMAL}
 
 
 def mutter(level, text):
-    """Print text to the console, if the level is not higher than the
-    current verbosity setting."""
+    """Print text to the console, if the level is not higher than the current
+    verbosity setting."""
     if level <= SETTINGS['verbosity']:
         print(text)
 
 
 def set_verbosity(value):
-    """Set the verbosity level to a given integral value.  The constants
-    VERBOSITY_* are good choices."""
+    """Set the verbosity level to a given integral value.
+
+    The constants VERBOSITY_* are good choices.
+
+    """
     SETTINGS['verbosity'] = value
 
 

@@ -180,6 +180,7 @@ def decompose_token(token):
 
     :param token: string to be divided
     :returns: sequence of subtoken strings
+
     """
     us_parts = us_regex.split(token)
     if ''.join(us_parts).isupper():
@@ -198,6 +199,7 @@ def handle_new_filetype(extension, dicts):
     """Handle creation of a new file-type for the given extension.
 
     :returns: True if created, False if canceled.
+
     """
     while True:
         descr = raw_input("""\
@@ -225,6 +227,7 @@ def handle_new_extension(ext, dicts):
     """Handle creation of a new file-type extension.
 
     :returns: True if new extension was registered, False if canceled.
+
     """
     print(("""\
             Extension "%s" is not registered.  With which programming language
@@ -267,6 +270,7 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
     :param dicts: dictionary set against which to perform matching
     :type  dicts: CorporaFile
     :returns: True if subtokens were handled, False if canceled
+
     """
     (_, ext) = os.path.splitext(filename.lower())
 
@@ -339,6 +343,7 @@ def handle_failed_check_interactively(
     :returns: (text, ofs) where ``text`` is the (possibly modified) source
               contents and ``ofs`` is the byte offset within the text where
               searching shall resume.
+
     """
     token = match_desc.get_token()
     print("%s:%u: Unmatched '%s' --> {%s}" %
@@ -396,6 +401,7 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
     :returns: (text, ofs) where ``text`` is the (possibly modified) source
               contents and ``ofs`` is the byte offset within the text where
               searching shall resume.
+
     """
     token = match_desc.get_token()
     if len(unmatched_subtokens) == 1:
@@ -429,6 +435,7 @@ def spell_check_token(
     :returns: (text, ofs) where ``text`` is the (possibly modified) source
               contents and ``ofs`` is the byte offset within the text where
               earching shall resume.
+
     """
     token = match_desc.get_token()
     if (token.lower() not in ignores) and (hex_regex.match(token) is None):
@@ -456,6 +463,7 @@ def spell_check_file(filename, dicts, ignores, report_only):
     :param dicts: dictionary set against which to perform matching
     :type  dicts: CorporaFile
     :param ignores: set of tokens to ignore for this session
+
     """
     fq_filename = os.path.normcase(os.path.realpath(filename))
     try:
@@ -503,9 +511,8 @@ def spell_check_file(filename, dicts, ignores, report_only):
 
 
 def verify_user_data_dir():
-    """Verify that the user data directory is present, or create one
-    from scratch.
-    """
+    """Verify that the user data directory is present, or create one from
+    scratch."""
     if not os.path.exists(USER_DATA_DIR):
         print('Creating new personal dictionary in %s .\n' % USER_DATA_DIR)
         os.makedirs(USER_DATA_DIR)
@@ -517,8 +524,11 @@ def verify_user_data_dir():
 
 
 def locate_dictionary():
-    """Load the location of the dictionary file.  This is either the default
+    """Load the location of the dictionary file.
+
+    This is either the default
     location, or an override specified in 'scspell.conf'.
+
     """
     verify_user_data_dir()
     try:
@@ -551,6 +561,7 @@ def set_dictionary(filename):
     """Set the location of the dictionary to the specified filename.
 
     :returns: None
+
     """
     filename = os.path.realpath(
         os.path.expandvars(
@@ -580,6 +591,7 @@ def export_dictionary(filename):
     """Export the current keyword dictionary to the specified file.
 
     :returns: None
+
     """
     shutil.copyfile(locate_dictionary(), filename)
 
@@ -591,6 +603,7 @@ def spell_check(source_filenames, override_dictionary=None, report_only=False):
     filename for this session only.
 
     :returns: None
+
     """
     verify_user_data_dir()
     dict_file = locate_dictionary(

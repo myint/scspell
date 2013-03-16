@@ -47,7 +47,8 @@ except ImportError:
 
 
 def get_data_dir(progname):
-    """Retrieves a platform-appropriate data directory for the specified program."""
+    """Retrieves a platform-appropriate data directory for the specified
+    program."""
     if sys.platform == 'win32':
         parent_dir = os.getenv('APPDATA')
         prog_dir = progname
