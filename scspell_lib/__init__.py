@@ -514,7 +514,6 @@ def verify_user_data_dir():
     """Verify that the user data directory is present, or create one from
     scratch."""
     if not os.path.exists(USER_DATA_DIR):
-        print('Creating new personal dictionary in %s .\n' % USER_DATA_DIR)
         os.makedirs(USER_DATA_DIR)
         shutil.copyfile(
             os.path.join(

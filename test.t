@@ -2,11 +2,6 @@ Test scspell.
 
     $ SCSPELL="$TESTDIR/scspell.py --report-only"
 
-Run once in case .scspell is not yet created.
-
-    $ echo 'ignore' > ignore.txt
-    $ $SCSPELL ignore.txt >& ignore_output
-
 Test spelling mistake.
 
     $ echo 'This is blabbb.' > bad.txt
