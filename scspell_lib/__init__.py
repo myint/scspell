@@ -92,9 +92,8 @@ file_id_regex = re.compile(r'scspell-id:[ \t]*([a-zA-Z0-9_\-]+)')
 
 
 class MatchDescriptor(object):
-    """A MatchDescriptor captures the information necessary to represent a token
-    matched within some source code.
-    """
+    """A MatchDescriptor captures the information necessary to represent a
+    token matched within some source code."""
 
     def __init__(self, text, matchobj):
         self._data = text
@@ -392,9 +391,11 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
     :param match_desc: description of the token matching instance
     :type  match_desc: MatchDescriptor
     :param filename: name of file containing the token
-    :param unmatched_subtokens: sequence of subtokens, each of which failed spell check
-    :returns: (text, ofs) where ``text`` is the (possibly modified) source contents and
-            ``ofs`` is the byte offset within the text where searching shall resume.
+    :param unmatched_subtokens: sequence of subtokens, each of which failed
+                                spell check
+    :returns: (text, ofs) where ``text`` is the (possibly modified) source
+              contents and ``ofs`` is the byte offset within the text where
+              searching shall resume.
     """
     token = match_desc.get_token()
     if len(unmatched_subtokens) == 1:
@@ -425,8 +426,9 @@ def spell_check_token(
     :param dicts: dictionary set against which to perform matching
     :type  dicts: CorporaFile
     :param ignores: set of tokens to ignore for this session
-    :returns: (text, ofs) where ``text`` is the (possibly modified) source contents and
-            ``ofs`` is the byte offset within the text where searching shall resume.
+    :returns: (text, ofs) where ``text`` is the (possibly modified) source
+              contents and ``ofs`` is the byte offset within the text where 
+              earching shall resume.
     """
     token = match_desc.get_token()
     if (token.lower() not in ignores) and (hex_regex.match(token) is None):

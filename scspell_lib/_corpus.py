@@ -75,7 +75,8 @@ class Corpus(object):
         return extensions
 
     def add_extension(self, extension):
-        """Append the extension to the list of extensions associated with this dictionary."""
+        """Append the extension to the list of extensions associated with this
+        dictionary."""
         assert self._dict_type == DICT_TYPE_FILETYPE
         (_, extensions) = self._metadata
         extensions.append(extension)
@@ -113,7 +114,9 @@ class Corpus(object):
 
 
 class ExactMatchCorpus(Corpus):
-    """A token matches against an ExactMatchCorpus iff it is present in the corpus."""
+
+    """A token matches against an ExactMatchCorpus iff it is present in the
+    corpus."""
 
     def __init__(self, dict_type, metadata, tokens):
         """Construct an instance from a sequence of tokens, giving it
@@ -164,7 +167,8 @@ class PrefixMatchCorpus(Corpus):
     def add(self, token):
         """Add the specified token to this Corpus."""
         insertion_point = bisect_left(self._tokens, token)
-        if insertion_point >= len(self._tokens) or self._tokens[insertion_point] != token:
+        if (insertion_point >= len(self._tokens) or
+                self._tokens[insertion_point] != token):
             self._tokens.insert(insertion_point, token)
             self._mark_dirty()
 
