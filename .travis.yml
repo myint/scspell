@@ -7,7 +7,7 @@ python:
     - "3.3"
 
 before_install:
-    - pip install git+https://github.com/myint/cram.git
+    - pip install --quiet git+https://github.com/myint/cram.git
     - cram --indent=4 test.t
 
 install:
