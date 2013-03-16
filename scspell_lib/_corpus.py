@@ -8,7 +8,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -83,7 +83,9 @@ class Corpus(object):
 
     def match(self, token):
         """Return True if the token is present in this Corpus.
+
         The matching method is Corpus-specific.
+
         """
         raise NotImplementedError
 
@@ -119,9 +121,8 @@ class ExactMatchCorpus(Corpus):
     corpus."""
 
     def __init__(self, dict_type, metadata, tokens):
-        """Construct an instance from a sequence of tokens, giving it
-        the specified dictionary type and associated metadata.
-        """
+        """Construct an instance from a sequence of tokens, giving it the
+        specified dictionary type and associated metadata."""
         Corpus.__init__(self, dict_type, metadata)
         self._tokens = set(tokens)
 
@@ -146,13 +147,11 @@ class ExactMatchCorpus(Corpus):
 
 class PrefixMatchCorpus(Corpus):
     """A token matches against a PrefixMatchCorpus iff the token is a prefix of
-    any item in the corpus.
-    """
+    any item in the corpus."""
 
     def __init__(self, dict_type, metadata, tokens):
-        """Construct an instance from a sequence of tokens, giving it
-        the specified dictionary type and associated metadata.
-        """
+        """Construct an instance from a sequence of tokens, giving it the
+        specified dictionary type and associated metadata."""
         Corpus.__init__(self, dict_type, metadata)
         self._tokens = sorted(tokens)
 
@@ -221,6 +220,7 @@ class CorporaFile(object):
         :param file_id: unique identifier for current file
         :type  file_id: string or None
         :returns: True if token matches a dictionary
+
         """
         if self._natural_dict.match(token):
             return True
@@ -263,11 +263,12 @@ class CorporaFile(object):
         self._natural_dict.add(token)
 
     def add_by_extension(self, token, extension):
-        """Add the token to a programming language-specific corpus associated with the
-        extension.
+        """Add the token to a programming language-specific corpus associated
+        with the extension.
 
         Returns True if the add was successful, False if there is no corpus
         with a matching filename extension.
+
         """
         try:
             corpus = self._extensions[extension]
@@ -286,8 +287,10 @@ class CorporaFile(object):
             return False
 
     def add_by_fileid(self, token, file_id):
-        """Add the token to a file-specific corpus.  If there is no corpus
-        for the given file_id, a new one is created.
+        """Add the token to a file-specific corpus.
+
+        If there is no corpus for the given file_id, a new one is created.
+
         """
         try:
             corpus = self._fileids[file_id]
@@ -311,9 +314,8 @@ class CorporaFile(object):
         return [corpus.get_name() for corpus in self._filetype_dicts]
 
     def new_filetype(self, type_descr, extensions):
-        """Add a new file-type corpus with the given description, associated with the
-        given set of extensions.
-        """
+        """Add a new file-type corpus with the given description, associated
+        with the given set of extensions."""
         assert type_descr not in self.get_filetypes()
         for ext in extensions:
             assert ext not in self._extensions
@@ -328,7 +330,8 @@ class CorporaFile(object):
             self._extensions[ext] = corpus
 
     def register_extension(self, extension, type_descr):
-        """Associate the extension with the file-type that has the given description."""
+        """Associate the extension with the file-type that has the given
+        description."""
         assert extension not in self._extensions
         for corpus in self._filetype_dicts:
             if corpus.get_name() == type_descr:
@@ -352,12 +355,12 @@ class CorporaFile(object):
                         corpus.write(f)
                     for corpus in self._fileid_dicts:
                         corpus.write(f)
-                    # Natural language dict goes at the end for readability... it is
-                    # typically much bigger than the other dictionaries
+                    # Natural language dict goes at the end for readability...
+                    # it is typically much bigger than the other dictionaries
                     self._natural_dict.write(f)
             except IOError as e:
-                print(('Warning: unable to write dictionary file "%s". (Reason: %s)' %
-                     (self._filename, str(e))))
+                print('Warning: unable to write dictionary file "%s". '
+                      '(Reason: %s)' % (self._filename, str(e)))
 
     def _parse(self, lines):
         """Parse the lines into a set of corpora."""
@@ -373,8 +376,10 @@ class CorporaFile(object):
         if dict_type == DICT_TYPE_NATURAL:
             self._natural_dict = PrefixMatchCorpus(
                 DICT_TYPE_NATURAL, metadata, tokens)
-            _util.mutter(_util.VERBOSITY_DEBUG, '(Loaded natural language dictionary with %u tokens.)' %
-                         len(tokens))
+            _util.mutter(
+                _util.VERBOSITY_DEBUG,
+                '(Loaded natural language dictionary with %u tokens.)' %
+                len(tokens))
             return offset
 
         if dict_type == DICT_TYPE_FILETYPE:
@@ -383,16 +388,20 @@ class CorporaFile(object):
             self._filetype_dicts.append(corpus)
             for ext in extensions:
                 self._extensions[ext] = corpus
-            _util.mutter(_util.VERBOSITY_DEBUG, '(Loaded file-type dictionary "%s" with %u tokens.)' %
-                        (type_descr, len(tokens)))
+            _util.mutter(
+                _util.VERBOSITY_DEBUG,
+                '(Loaded file-type dictionary "%s" with %u tokens.)' %
+                (type_descr, len(tokens)))
             return offset
 
         if dict_type == DICT_TYPE_FILEID:
             corpus = ExactMatchCorpus(DICT_TYPE_FILEID, metadata, tokens)
             self._fileid_dicts.append(corpus)
             self._fileids[metadata] = corpus
-            _util.mutter(_util.VERBOSITY_DEBUG, '(Loaded file-id dictionary "%s" with %u tokens.)' %
-                        (metadata, len(tokens)))
+            _util.mutter(
+                _util.VERBOSITY_DEBUG,
+                '(Loaded file-id dictionary "%s" with %u tokens.)' %
+                (metadata, len(tokens)))
             return offset
 
         raise AssertionError('Unknown dict_type "%s".' % dict_type)
@@ -404,20 +413,22 @@ class CorporaFile(object):
 
             <DICTIONARY TYPE>: <type-specific metadata>
 
-            * If the dictionary type is ``NATURAL`` then the metadata shall be empty.
-              The following word list is a natural-language dictionary.
+            * If the dictionary type is ``NATURAL`` then the metadata shall be
+              empty. The following word list is a natural-language dictionary.
 
-            * If the dictionary type is ``FILETYPE``, then the metadata shall take the
-              form "<descriptive name>; <comma-separated extensions list>".  The name
-              shall be a human-readable description of the file type (e.g. the name
-              of the programming language), and the extensions list shall be a list of
-              extensions to associate with this file type.
+            * If the dictionary type is ``FILETYPE``, then the metadata shall
+              take the form "<descriptive name>; <comma-separated extensions
+              list>". The name shall be a human-readable description of the
+              file type (e.g. the name of the programming language), and the
+              extensions list shall be a list of extensions to associate with
+              this file type.
 
-            * If the dictionary type is ``FILEID``, then the metadata shall be a
-              unique identifier string associated with a particular file
+            * If the dictionary type is ``FILEID``, then the metadata shall be
+              a unique identifier string associated with a particular file
 
-        The return value is the tuple (dictionary type, metadata), where the metadata
-        returned is of a type appropriate for the type of dictionary.
+        The return value is the tuple (dictionary type, metadata), where the
+        metadata returned is of a type appropriate for the type of dictionary.
+
         """
         try:
             (raw_dict_type, raw_metadata) = line.split(':')
@@ -429,19 +440,22 @@ class CorporaFile(object):
 
         if dict_type == DICT_TYPE_NATURAL:
             if metadata != '':
-                raise ParsingError('Dictionary header "%s" on line %u has nonempty metadata.' %
-                                  (DICT_TYPE_NATURAL, line_num))
+                raise ParsingError(
+                    'Dictionary header "%s" on line %u has nonempty '
+                    'metadata.' % (DICT_TYPE_NATURAL, line_num))
             if self._natural_dict is not None:
-                raise ParsingError('Duplicate dictionary type "%s" on line %u.' %
-                                  (DICT_TYPE_NATURAL, line_num))
+                raise ParsingError(
+                    'Duplicate dictionary type "%s" on line %u.' %
+                    (DICT_TYPE_NATURAL, line_num))
             return (dict_type, None)
 
         if dict_type == DICT_TYPE_FILETYPE:
             try:
                 (raw_descr, raw_extensions) = metadata.split(';')
             except ValueError:
-                raise ParsingError('Syntax error in %s dictionary header on line %u.' %
-                                  (DICT_TYPE_FILETYPE, line_num))
+                raise ParsingError(
+                    'Syntax error in %s dictionary header on line %u.' %
+                    (DICT_TYPE_FILETYPE, line_num))
 
             descr = raw_descr.strip()
             extensions = [
@@ -457,15 +471,18 @@ class CorporaFile(object):
                     line_num)
             for corpus in self._filetype_dicts:
                 if corpus.get_name() == descr:
-                    raise ParsingError('Duplicate file-type description "%s" on line %u.' %
-                                      (descr, line_num))
+                    raise ParsingError(
+                        'Duplicate file-type description "%s" on line %u.' %
+                        (descr, line_num))
             if extensions == []:
-                raise ParsingError('Missing extensions list in %s dictionary header on line %u.' %
-                                  (DICT_TYPE_FILETYPE, line_num))
+                raise ParsingError(
+                    'Missing extensions list in %s dictionary header on line '
+                    '%u.' % (DICT_TYPE_FILETYPE, line_num))
             for ext in extensions:
                 if not ext.startswith('.'):
-                    raise ParsingError('Extension "%s" on line %u does not begin with a period.' %
-                                      (ext, line_num))
+                    raise ParsingError(
+                        'Extension "%s" on line %u does not begin with a '
+                        'period.' % (ext, line_num))
                 if ext in self._extensions:
                     raise ParsingError(
                         'Duplicate extension "%s" on line %u.' %
@@ -474,8 +491,9 @@ class CorporaFile(object):
 
         if dict_type == DICT_TYPE_FILEID:
             if file_id_regex.match(metadata) is None:
-                raise ParsingError('%s metadata string "%s" on line %u is not a valid file ID.' %
-                                   DICT_TYPE_FILEID, metadata, line_num)
+                raise ParsingError(
+                    '%s metadata string "%s" on line %u is not a valid file '
+                    'ID.' % DICT_TYPE_FILEID, metadata, line_num)
             if metadata in self._fileids:
                 raise ParsingError(
                     'Duplicate file ID string "%s" on line %u.' %
@@ -487,9 +505,11 @@ class CorporaFile(object):
             (dict_type, line_num))
 
     def _read_corpus_tokens(self, offset, lines):
-        """Read the set of tokens for the corpus which begins at the given offset.
+        """Read the set of tokens for the corpus which begins at the given
+        offset.
 
         Returns the tuple (next offset, tokens).
+
         """
         tokens = []
         for i, line in enumerate(lines[offset+1:]):

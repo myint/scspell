@@ -427,7 +427,7 @@ def spell_check_token(
     :type  dicts: CorporaFile
     :param ignores: set of tokens to ignore for this session
     :returns: (text, ofs) where ``text`` is the (possibly modified) source
-              contents and ``ofs`` is the byte offset within the text where 
+              contents and ``ofs`` is the byte offset within the text where
               earching shall resume.
     """
     token = match_desc.get_token()
