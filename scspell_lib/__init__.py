@@ -92,6 +92,7 @@ file_id_regex = re.compile(r'scspell-id:[ \t]*([a-zA-Z0-9_\-]+)')
 
 
 class MatchDescriptor(object):
+
     """A MatchDescriptor captures the information necessary to represent a
     token matched within some source code."""
 

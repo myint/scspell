@@ -42,10 +42,12 @@ file_id_regex = re.compile(r'[a-zA-Z0-9_\-]+')
 
 
 class ParsingError(Exception):
+
     """An error occurred when parsing the dictionary file."""
 
 
 class Corpus(object):
+
     """Base class for various types of (textual) dictionary-like objects."""
 
     def __init__(self, dict_type, metadata):
@@ -146,6 +148,7 @@ class ExactMatchCorpus(Corpus):
 
 
 class PrefixMatchCorpus(Corpus):
+
     """A token matches against a PrefixMatchCorpus iff the token is a prefix of
     any item in the corpus."""
 
@@ -181,6 +184,7 @@ class PrefixMatchCorpus(Corpus):
 
 
 class CorporaFile(object):
+
     """The CorporaFile manages a single file containing multiple corpora."""
 
     def __init__(self, filename):
