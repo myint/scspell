@@ -8,7 +8,6 @@ python:
 
 before_install:
     - pip install --quiet git+https://github.com/myint/cram.git
-    - cram --indent=4 test.t
 
 install:
     - python setup.py --quiet install
