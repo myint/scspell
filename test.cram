@@ -1,3 +1,5 @@
+#!/usr/bin/env cram --indent=4
+
 Test scspell.
 
     $ SCSPELL="$TESTDIR/scspell.py --report-only"
