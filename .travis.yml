@@ -13,4 +13,4 @@ install:
     - python setup.py --quiet install
 
 script:
-    - ./test.cram
+    - cram --indent=4 test.cram
