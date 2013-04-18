@@ -1,4 +1,4 @@
-############################################################################
+#
 # scspell
 # Copyright (C) 2009 Paul Pelzl
 #
@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-############################################################################
+#
 
 
 """
@@ -137,7 +137,7 @@ class MatchDescriptor(object):
             if i == 0:
                 offsets.append(0)
             else:
-                offsets.append(offsets[i-1] + len(lines[i-1]) + 1)
+                offsets.append(offsets[i - 1] + len(lines[i - 1]) + 1)
 
         # Compute the line number where the match is located
         for (i, ofs) in enumerate(offsets):
@@ -149,8 +149,8 @@ class MatchDescriptor(object):
 
         # Compute the set of lines surrounding this line number
         self._context = [
-            (i+1, line.strip('\r\n'))for (i, line) in enumerate(lines)
-            if (i+1 - self._line_num) in
+            (i + 1, line.strip('\r\n'))for (i, line) in enumerate(lines)
+            if (i + 1 - self._line_num) in
             range(-CONTEXT_SIZE // 2, CONTEXT_SIZE // 2 + 1)]
         return self._context
 

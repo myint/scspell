@@ -1,4 +1,4 @@
-############################################################################
+#
 # scspell
 # Copyright (C) 2009 Paul Pelzl
 #
@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-############################################################################
+#
 
 """
 corpus.py
@@ -374,7 +374,8 @@ class CorporaFile(object):
 
     def _parse_corpus(self, lines, offset):
         """Parse a single corpus starting at an offset into lines."""
-        dict_type, metadata = self._parse_header_line(lines[offset], offset+1)
+        dict_type, metadata = self._parse_header_line(
+            lines[offset], offset + 1)
         offset, tokens = self._read_corpus_tokens(offset, lines)
 
         if dict_type == DICT_TYPE_NATURAL:
@@ -516,7 +517,7 @@ class CorporaFile(object):
 
         """
         tokens = []
-        for i, line in enumerate(lines[offset+1:]):
+        for i, line in enumerate(lines[offset + 1:]):
             if ':' in line:
                 return (offset + i + 1, tokens)
             elif line != '':
