@@ -16,10 +16,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-
-"""
-portable -- contains functions for hiding differences between platforms.
-"""
+"""Contains functions for hiding differences between platforms."""
 
 import os
 import sys

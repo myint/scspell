@@ -18,9 +18,7 @@
 #
 
 
-"""
-scspell -- an interactive, conservative spell-checker for source code.
-"""
+"""scspell -- an interactive, conservative spell-checker for source code."""
 from __future__ import print_function
 
 

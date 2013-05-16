@@ -16,10 +16,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
+"""scspell -- an interactive, conservative spell-checker for source code."""
 
-"""
-scspell -- an interactive, conservative spell-checker for source code.
-"""
 from __future__ import print_function
 from __future__ import with_statement
 
