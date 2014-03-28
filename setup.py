@@ -18,6 +18,7 @@ class ScriptInstaller(distutils.command.install_scripts.install_scripts):
 
     """Override distutils' ``install_scripts``, causing it to elide the .py
     script extension when installing on POSIX platforms."""
+
     def run(self):
         distutils.command.install_scripts.install_scripts.run(self)
         if os.name == 'posix' and not disable_rename:
@@ -33,6 +34,7 @@ class WinInstCreator(distutils.command.bdist_wininst.bdist_wininst):
 
     """Disables the ScriptInstaller override when generating a Windows
     installer while using a POSIX platform."""
+
     def run(self):
         global disable_rename
         disable_rename = True

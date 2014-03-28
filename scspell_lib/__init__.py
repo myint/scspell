@@ -524,8 +524,8 @@ def verify_user_data_dir():
 def locate_dictionary():
     """Load the location of the dictionary file.
 
-    This is either the default
-    location, or an override specified in 'scspell.conf'.
+    This is either the default location, or an override specified in
+    'scspell.conf'.
 
     """
     verify_user_data_dir()
