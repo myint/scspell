@@ -1,7 +1,7 @@
 scspell
 =======
 
-.. image:: https://travis-ci.org/myint/scspell.png?branch=master
+.. image:: https://travis-ci.org/myint/scspell.svg?branch=master
    :target: https://travis-ci.org/myint/scspell
    :alt: Build status
 
