@@ -194,9 +194,9 @@ class CorporaFile(object):
         self._filetype_dicts = []       # File-type-specific dictionaries
         self._fileid_dicts = []       # File-specific dictionaries
         self._extensions = {}
-            # Associates each extension with a file-type dictionary
+        # Associates each extension with a file-type dictionary
         self._fileids = {}
-            # Associates each file-id with a file-specific dictionary
+        # Associates each file-id with a file-specific dictionary
 
         try:
             with _util.open_with_encoding(filename, mode='r') as f:

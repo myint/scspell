@@ -413,7 +413,7 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
             "'%s'" %
             t for t in unmatched_subtokens)
         print("%s:%u: %s were not found in the dictionary (from token '%s'" %
-             (filename, match_desc.get_line_num(), unmatched_subtokens, token))
+              (filename, match_desc.get_line_num(), unmatched_subtokens, token))
     # Default: text is unchanged
     return (match_desc.get_string(),
             match_desc.get_ofs() + len(match_desc.get_token()))
@@ -470,7 +470,7 @@ def spell_check_file(filename, dicts, ignores, report_only):
             source_text = source_file.read()
     except IOError as e:
         print('Error: can\'t read source file "%s"; skipping.  (Reason: %s)' %
-             (filename, str(e)))
+              (filename, str(e)))
         return
 
     # Look for a file ID
