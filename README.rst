@@ -170,14 +170,3 @@ Public License; see ``COPYING.txt`` for details.
 The English dictionary distributed with scspell is derived from the
 `SCOWL word lists <http://wordlist.sourceforge.net>`_ . See
 ``SCOWL-LICENSE.txt`` for the myriad licenses that apply to that dictionary.
-
-Bugs, etc.
-------------
-
-**scspell** is `hosted on Launchpad <http://launchpad.net/scspell>`_;
-this would be a great place to file bug reports and feature requests or track
-development via `bzr <http://bazaar-vcs.org>`_. If that's not your style, just
-send an email to Paul Pelzl <``pelzlpj at gmail dot com``> .
-
-Patches adding the most common keywords/APIs for popular programming languages
-would be most welcome.
