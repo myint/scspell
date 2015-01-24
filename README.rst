@@ -149,7 +149,7 @@ Installation
 
 Install **scspell** via pip::
 
-    $ pip install git+https://github.com/myint/scspell
+    $ pip install scspell3k
 
 Alternatively, download and unpack the source archive, switch to the
 archive root directory, and run the installation script::
