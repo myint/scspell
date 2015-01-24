@@ -49,6 +49,7 @@ setup(
     version=VERSION,
     description='A conservative interactive spell checker for source code.',
     long_description=descr,
+    url='https://github.com/myint/scspell',
     packages=['scspell_lib'],
     scripts=['scspell.py'],
     package_data={'scspell_lib': ['data/*']},
