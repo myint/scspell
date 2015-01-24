@@ -1,4 +1,5 @@
-.tox/
+/.tox/
+/dist/
+/MANIFEST
 __pycache__/
 *.pyc
-MANIFEST
