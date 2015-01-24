@@ -46,7 +46,7 @@ except NameError:
     raw_input = input
 
 
-VERSION = '0.1.0'
+VERSION = '0.2'
 
 # Name of scspell.conf section header
 CONFIG_SECTION = 'Settings'
