@@ -2,20 +2,23 @@ scspell
 =======
 
 .. image:: https://travis-ci.org/myint/scspell.svg?branch=master
-   :target: https://travis-ci.org/myint/scspell
-   :alt: Build status
+    :target: https://travis-ci.org/myint/scspell
+    :alt: Build status
 
-**scspell** is a spell checker for source code.  It does not try to be
-particularly smart--rather, it does the simplest thing that can possibly work:
+**scspell** is a spell checker for source code. This is an unofficial fork (of
+https://launchpad.net/scspell) that runs on both Python 2 and 3.
+
+**scspell** does not try to be particularly smart--rather, it does the simplest
+thing that can possibly work:
 
     1. All alphanumeric strings (strings of letters, numbers, and
        underscores) are spell-checked tokens.
-    2. Each token is split into one or more subtokens.  Underscores and digits
-       always divide tokens, and capital letters will begin new subtokens.  In
+    2. Each token is split into one or more subtokens. Underscores and digits
+       always divide tokens, and capital letters will begin new subtokens. In
        other words, ``some_variable`` and ``someVariable`` will both generate
        the subtoken list {``some``, ``variable``}.
     3. All subtokens longer than three characters are matched against a set of
-       dictionaries, and a match failure prompts the user for action.  When
+       dictionaries, and a match failure prompts the user for action. When
        matching against the included English dictionary, *prefix matching* is
        employed; this choice permits the use of truncated words like ``dict``
        as valid subtokens.
@@ -25,10 +28,10 @@ typical naming conventions, this algorithm will usually catch many errors
 without an annoying false positive rate.
 
 In an effort to catch more spelling errors, **scspell** is able to check each
-file against a set of dictionary words selected *specifically for that file*.  Up
+file against a set of dictionary words selected *specifically for that file*. Up
 to three different sub-dictionaries may be searched for any given file:
 
-    1. A natural language dictionary.  (**scspell** provides an American
+    1. A natural language dictionary. (**scspell** provides an American
        English dictionary as the default.)
     2. A programming language-specific dictionary, intended to contain
        oddly-spelled keywords and APIs associated with that language.
@@ -50,7 +53,7 @@ For each spell check failure, you will see output much like this::
 
 In other words, the token "``someMispeldVaraible``" was found on line 27
 of ``filename.c``, and it contains subtokens "``mispeld``" and
-"``varaible``" which both failed the spell-checking algorithm.  You will
+"``varaible``" which both failed the spell-checking algorithm. You will
 be prompted for an action to take:
 
     (i)gnore
@@ -88,29 +91,26 @@ prompted with the following options for every subtoken:
 
     add to (p)rogramming language dictionary
         Add this subtoken to the dictionary associated with the
-        programming language of the current file.  **scspell** uses the
+        programming language of the current file. **scspell** uses the
         file extension to determine the language, so you will only
         see this option for files which have an extension.
 
     add to (f)ile-specific dictionary
         Add this subtoken to the dictionary associated with the
-        current file.  **scspell** identifies unique files by scanning
+        current file. **scspell** identifies unique files by scanning
         for an embedded ID string, so you will only see this option
-        for files which have such an ID.  See `Creating File IDs`_
+        for files which have such an ID. See `Creating File IDs`
         for details.
 
     add to (n)atural language dictionary
         Add this subtoken to the natural language dictionary.
-
-
-.. _`Creating File IDs`:
 
 Creating File IDs
 -----------------
 
 If you would like **scspell** to be able to uniquely identify a file, thus
 enabling the creation of a file-specific dictionary, then you must insert a
-unique ID somewhere in the contents of that file.  **scspell** will scan each
+unique ID somewhere in the contents of that file. **scspell** will scan each
 file for a string of the following form::
 
     scspell-id: <unique ID>
@@ -123,12 +123,11 @@ The unique ID must consist only of letters, numbers, underscores, and dashes.
 
 (Most likely you will want to place a file's unique ID inside a source code comment.)
 
-
 Sharing a Dictionary
 --------------------
 
 A team of developers working on the same source tree may wish to share a common
-dictionary.  You can permanently set the location of a shared dictionary by
+dictionary. You can permanently set the location of a shared dictionary by
 executing ::
 
     $ scspell --set-dictionary=/path/to/dictionary_file.txt
@@ -169,7 +168,7 @@ License
 Public License; see ``COPYING.txt`` for details.
 
 The English dictionary distributed with scspell is derived from the
-`SCOWL word lists <http://wordlist.sourceforge.net>`_ .  See
+`SCOWL word lists <http://wordlist.sourceforge.net>`_ . See
 ``SCOWL-LICENSE.txt`` for the myriad licenses that apply to that dictionary.
 
 Bugs, etc.
@@ -177,7 +176,7 @@ Bugs, etc.
 
 **scspell** is `hosted on Launchpad <http://launchpad.net/scspell>`_;
 this would be a great place to file bug reports and feature requests or track
-development via `bzr <http://bazaar-vcs.org>`_.  If that's not your style, just
+development via `bzr <http://bazaar-vcs.org>`_. If that's not your style, just
 send an email to Paul Pelzl <``pelzlpj at gmail dot com``> .
 
 Patches adding the most common keywords/APIs for popular programming languages

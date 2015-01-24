@@ -41,27 +41,20 @@ class WinInstCreator(distutils.command.bdist_wininst.bdist_wininst):
         distutils.command.bdist_wininst.bdist_wininst.run(self)
 
 
-app_name = 'scspell'
 with open('README.rst', 'r') as readme_file:
     descr = readme_file.read()
 
 setup(
-    name=app_name,
+    name='scspell3k',
     version=VERSION,
     description='A conservative interactive spell checker for source code.',
     long_description=descr,
-    author='Paul Pelzl',
-    author_email='pelzlpj@gmail.com',
-    url='http://launchpad.net/%s' % app_name,
-
     packages=['scspell_lib'],
     scripts=['scspell.py'],
     package_data={'scspell_lib': ['data/*']},
-
     cmdclass={
         'install_scripts': ScriptInstaller,
         'bdist_wininst': WinInstCreator},
-
     license='http://www.gnu.org/licenses/old-licenses/gpl-2.0.html',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -69,12 +62,14 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License (GPL)',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development',
         'Topic :: Text Processing :: Linguistic',
         'Topic :: Utilities'],
     platforms=['any']
 )
-
-
-# scspell-id: 2f47a8a0-18e4-4f7a-91ef-74ad909cf415
