@@ -412,8 +412,12 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
         unmatched_subtokens = ', '.join(
             "'%s'" %
             t for t in unmatched_subtokens)
-        print("%s:%u: %s were not found in the dictionary (from token '%s'" %
-              (filename, match_desc.get_line_num(), unmatched_subtokens, token))
+        print(
+            "%s:%u: %s were not found in the dictionary (from token '%s'" %
+            (filename,
+             match_desc.get_line_num(),
+             unmatched_subtokens,
+             token))
     # Default: text is unchanged
     return (match_desc.get_string(),
             match_desc.get_ofs() + len(match_desc.get_token()))
