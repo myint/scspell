@@ -8,7 +8,7 @@ from distutils import log
 import distutils.command.install_scripts
 import distutils.command.bdist_wininst
 
-from scspell_lib import VERSION
+from scspell import VERSION
 
 
 disable_rename = False
@@ -50,9 +50,9 @@ setup(
     description='A conservative interactive spell checker for source code.',
     long_description=descr,
     url='https://github.com/myint/scspell',
-    packages=['scspell_lib'],
+    packages=['scspell'],
     scripts=['scspell.py'],
-    package_data={'scspell_lib': ['data/*']},
+    package_data={'scspell': ['data/*']},
     cmdclass={
         'install_scripts': ScriptInstaller,
         'bdist_wininst': WinInstCreator},

@@ -24,7 +24,7 @@ from __future__ import print_function
 
 import uuid
 import optparse
-import scspell_lib
+import scspell
 
 
 parser = optparse.OptionParser(usage="""\
@@ -38,7 +38,7 @@ Copyright (C) 2009 Paul Pelzl
 %%prog comes with ABSOLUTELY NO WARRANTY.  This is free software, and
 you are welcome to redistribute it under certain conditions; for details,
 see COPYING.txt as distributed with the program.
-""" % scspell_lib.VERSION)
+""" % scspell.VERSION)
 
 spell_group = optparse.OptionGroup(parser, 'Spell Checking')
 spell_group.add_option(
@@ -68,19 +68,19 @@ parser.add_option('-D', '--debug', dest='debug', action='store_true',
 
 (opts, files) = parser.parse_args()
 if opts.debug:
-    scspell_lib.set_verbosity(scspell_lib.VERBOSITY_MAX)
+    scspell.set_verbosity(scspell.VERBOSITY_MAX)
 
 if opts.gen_id:
     print('scspell-id: %s' % str(uuid.uuid1()))
 elif opts.dictionary is not None:
-    scspell_lib.set_dictionary(opts.dictionary)
+    scspell.set_dictionary(opts.dictionary)
 elif opts.export_filename is not None:
-    scspell_lib.export_dictionary(opts.export_filename)
+    scspell.export_dictionary(opts.export_filename)
     print('Exported dictionary to "%s".' % opts.export_filename)
 elif len(files) < 1:
     parser.error('No files specified')
 else:
-    scspell_lib.spell_check(files, opts.override_filename, opts.report)
+    scspell.spell_check(files, opts.override_filename, opts.report)
 
 
 # scspell-id: 285634e7-e5de-4e95-accc-ba639be2834e
