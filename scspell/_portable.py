@@ -18,6 +18,8 @@
 
 """Contains functions for hiding differences between platforms."""
 
+from __future__ import absolute_import
+
 import os
 import sys
 

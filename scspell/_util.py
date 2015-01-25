@@ -18,6 +18,7 @@
 
 """Utility functions which may be useful across the source tree."""
 
+from __future__ import absolute_import
 from __future__ import print_function
 
 import io
