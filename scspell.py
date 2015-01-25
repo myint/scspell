@@ -39,7 +39,7 @@ Copyright (C) 2009 Paul Pelzl
 %%prog comes with ABSOLUTELY NO WARRANTY.  This is free software, and
 you are welcome to redistribute it under certain conditions; for details,
 see COPYING.txt as distributed with the program.
-""" % scspell.VERSION)
+""" % scspell.__version__)
 
 spell_group = optparse.OptionGroup(parser, 'Spell Checking')
 spell_group.add_option(

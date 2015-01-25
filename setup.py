@@ -1,15 +1,22 @@
 #!/usr/bin/env python
 
+import ast
 import os
 from distutils.core import setup
 from distutils import log
 import distutils.command.install_scripts
 import distutils.command.bdist_wininst
 
-from scspell import VERSION
-
 
 disable_rename = False
+
+
+def get_version():
+    """Return version string."""
+    with open('scspell/__init__.py') as input_file:
+        for line in input_file:
+            if line.startswith('__version__'):
+                return ast.parse(line).body[0].value.s
 
 
 class ScriptInstaller(distutils.command.install_scripts.install_scripts):
@@ -44,7 +51,7 @@ with open('README.rst', 'r') as readme_file:
 
 setup(
     name='scspell3k',
-    version=VERSION,
+    version=get_version(),
     description='A conservative interactive spell checker for source code.',
     long_description=descr,
     url='https://github.com/myint/scspell',
