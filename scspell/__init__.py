@@ -615,15 +615,3 @@ def spell_check(source_filenames, override_dictionary=None, report_only=False):
         ignores = set()
         for f in source_filenames:
             spell_check_file(f, dicts, ignores, report_only)
-
-
-__all__ = [
-    'spell_check',
-    'set_verbosity',
-    'VERSION',
-    'VERBOSITY_NORMAL',
-    'VERBOSITY_MAX'
-]
-
-
-# scspell-id: 8bd41bba-f84b-4b8f-880c-4089e37b611a

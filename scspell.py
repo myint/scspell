@@ -82,6 +82,3 @@ elif len(files) < 1:
     parser.error('No files specified')
 else:
     scspell.spell_check(files, opts.override_filename, opts.report)
-
-
-# scspell-id: 285634e7-e5de-4e95-accc-ba639be2834e

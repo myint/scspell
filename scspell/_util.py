@@ -70,6 +70,3 @@ def detect_encoding(filename):
         return encoding
     except (SyntaxError, LookupError, UnicodeDecodeError):
         return 'latin-1'
-
-
-# scspell-id: b114984a-c7aa-40a8-9a53-b54fb6a52582

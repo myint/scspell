@@ -527,5 +527,3 @@ class CorporaFile(object):
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.close()
         return False
-
-# scspell-id: f123e4a9-0b58-4548-af1d-9f2b35930139
