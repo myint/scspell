@@ -35,9 +35,6 @@ except ImportError:
 from . import _portable
 from ._corpus import CorporaFile
 from . import _util
-from ._util import set_verbosity
-from ._util import VERBOSITY_NORMAL
-from ._util import VERBOSITY_MAX
 
 
 try:
