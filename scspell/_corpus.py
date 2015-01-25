@@ -371,9 +371,9 @@ class CorporaFile(object):
 
     def _parse_corpus(self, lines, offset):
         """Parse a single corpus starting at an offset into lines."""
-        dict_type, metadata = self._parse_header_line(
+        (dict_type, metadata) = self._parse_header_line(
             lines[offset], offset + 1)
-        offset, tokens = self._read_corpus_tokens(offset, lines)
+        (offset, tokens )= _read_corpus_tokens(offset, lines)
 
         if dict_type == DICT_TYPE_NATURAL:
             self._natural_dict = PrefixMatchCorpus(
@@ -506,24 +506,25 @@ class CorporaFile(object):
             'Unrecognized dictionary type "%s" on line %u.' %
             (dict_type, line_num))
 
-    def _read_corpus_tokens(self, offset, lines):
-        """Read the set of tokens for the corpus which begins at the given
-        offset.
-
-        Returns the tuple (next offset, tokens).
-
-        """
-        tokens = []
-        for i, line in enumerate(lines[offset + 1:]):
-            if ':' in line:
-                return (offset + i + 1, tokens)
-            elif line != '':
-                tokens.append(line)
-        return len(lines), tokens
-
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.close()
         return False
+
+
+def _read_corpus_tokens(offset, lines):
+    """Read the set of tokens for the corpus which begins at the given
+    offset.
+
+    Returns the tuple (next offset, tokens).
+
+    """
+    tokens = []
+    for i, line in enumerate(lines[offset + 1:]):
+        if ':' in line:
+            return (offset + i + 1, tokens)
+        elif line != '':
+            tokens.append(line)
+    return (len(lines), tokens)
