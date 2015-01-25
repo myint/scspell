@@ -36,6 +36,13 @@ from . import _portable
 from ._corpus import CorporaFile
 from . import _util
 
+from ._util import set_verbosity
+assert set_verbosity
+from ._util import VERBOSITY_NORMAL
+assert VERBOSITY_NORMAL is not None
+from ._util import VERBOSITY_MAX
+assert VERBOSITY_MAX is not None
+
 
 try:
     raw_input

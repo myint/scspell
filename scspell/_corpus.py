@@ -232,8 +232,7 @@ class CorporaFile(object):
             _util.mutter(
                 _util.VERBOSITY_DEBUG,
                 '(Matching against filetype "%s".)' %
-                corpus.get_name(
-                ))
+                corpus.get_name())
             if corpus.match(token):
                 return True
         except KeyError:
@@ -276,8 +275,7 @@ class CorporaFile(object):
             _util.mutter(
                 _util.VERBOSITY_DEBUG,
                 '(Adding to filetype "%s".)' %
-                corpus.get_name(
-                ))
+                corpus.get_name())
             corpus.add(token)
             return True
         except KeyError:
@@ -343,8 +341,10 @@ class CorporaFile(object):
 
     def close(self):
         """Update the corpus file iff the contents were modified."""
-        dirty = self._natural_dict.is_dirty(
-        ) if self._natural_dict is not None else False
+        dirty = (
+            self._natural_dict.is_dirty() if self._natural_dict is not None
+            else False
+        )
         for corpus in self._filetype_dicts:
             dirty = dirty or corpus.is_dirty()
         for corpus in self._fileid_dicts:
@@ -373,7 +373,7 @@ class CorporaFile(object):
         """Parse a single corpus starting at an offset into lines."""
         (dict_type, metadata) = self._parse_header_line(
             lines[offset], offset + 1)
-        (offset, tokens )= _read_corpus_tokens(offset, lines)
+        (offset, tokens)= _read_corpus_tokens(offset, lines)
 
         if dict_type == DICT_TYPE_NATURAL:
             self._natural_dict = PrefixMatchCorpus(
@@ -461,10 +461,8 @@ class CorporaFile(object):
 
             descr = raw_descr.strip()
             extensions = [
-                ext.strip(
-                ).lower(
-                ) for ext in raw_extensions.split(
-                    ',')]
+                ext.strip().lower()
+                for ext in raw_extensions.split(',')]
             extensions = [ext for ext in extensions if ext != '']
 
             if descr == '':
