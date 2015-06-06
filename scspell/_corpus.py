@@ -373,7 +373,7 @@ class CorporaFile(object):
         """Parse a single corpus starting at an offset into lines."""
         (dict_type, metadata) = self._parse_header_line(
             lines[offset], offset + 1)
-        (offset, tokens)= _read_corpus_tokens(offset, lines)
+        (offset, tokens) = _read_corpus_tokens(offset, lines)
 
         if dict_type == DICT_TYPE_NATURAL:
             self._natural_dict = PrefixMatchCorpus(
@@ -513,8 +513,7 @@ class CorporaFile(object):
 
 
 def _read_corpus_tokens(offset, lines):
-    """Read the set of tokens for the corpus which begins at the given
-    offset.
+    """Read the set of tokens for the corpus which begins at the given offset.
 
     Returns the tuple (next offset, tokens).
 
