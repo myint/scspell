@@ -204,13 +204,11 @@ class CorporaFile(object):
         except IOError as e:
             print(
                 'Warning: unable to read dictionary file "%s". (Reason: %s)' %
-                (filename, str(e)))
-            print('Continuing with empty dictionary.\n')
-            self._natural_dict = PrefixMatchCorpus(DICT_TYPE_NATURAL, '', [])
+                (filename, str(e)), file=sys.stderr)
         except ParsingError as e:
             print(
                 'Error while parsing dictionary file "%s": %s' %
-                (filename, str(e)))
+                (filename, str(e)), file=sys.stderr)
             sys.exit(1)
 
     def match(self, token, filename, file_id):
