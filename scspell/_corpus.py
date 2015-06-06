@@ -203,13 +203,12 @@ class CorporaFile(object):
             self._parse(lines)
         except IOError as e:
             print(
-                'Warning: unable to read dictionary file "%s". (Reason: %s)' %
+                "Warning: unable to read dictionary file '%s'. (Reason: %s)" %
                 (filename, str(e)), file=sys.stderr)
         except ParsingError as e:
-            print(
-                'Error while parsing dictionary file "%s": %s' %
-                (filename, str(e)), file=sys.stderr)
-            sys.exit(1)
+            raise SystemExit(
+                "Error while parsing dictionary file '{}': {}".format(filename,
+                                                                      e))
 
     def match(self, token, filename, file_id):
         """Return True if the token matches any of the applicable corpora.
