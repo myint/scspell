@@ -78,7 +78,7 @@ elif opts.dictionary is not None:
     scspell.set_dictionary(opts.dictionary)
 elif opts.export_filename is not None:
     scspell.export_dictionary(opts.export_filename)
-    print('Exported dictionary to "%s".' % opts.export_filename)
+    print("Exported dictionary to '{}'".format(opts.export_filename))
 elif len(files) < 1:
     parser.error('No files specified')
 else:

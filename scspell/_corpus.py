@@ -204,7 +204,7 @@ class CorporaFile(object):
         except IOError as e:
             print(
                 'Warning: unable to read dictionary file '
-                "'{}'. (Reason: {})".format(filename, e),
+                "'{}' (reason: {})".format(filename, e),
                 file=sys.stderr)
         except ParsingError as e:
             raise SystemExit(
@@ -363,8 +363,8 @@ class CorporaFile(object):
                     # it is typically much bigger than the other dictionaries
                     self._natural_dict.write(f)
             except IOError as e:
-                print('Warning: unable to write dictionary file "%s". '
-                      '(Reason: %s)' % (self._filename, str(e)))
+                print("Warning: unable to write dictionary file '{}' "
+                      '(reason: {})'.format(self._filename, e))
 
     def _parse(self, lines):
         """Parse the lines into a set of corpora."""
