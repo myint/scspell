@@ -52,6 +52,6 @@ def get_data_dir(progname):
         parent_dir = os.getenv('APPDATA')
         prog_dir = progname
     else:
-        parent_dir = os.getenv('HOME')
+        parent_dir = os.path.expanduser('~')
         prog_dir = '.' + progname
     return os.path.normpath(os.path.join(parent_dir, prog_dir))
