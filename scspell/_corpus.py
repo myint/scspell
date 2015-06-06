@@ -203,12 +203,18 @@ class CorporaFile(object):
             self._parse(lines)
         except IOError as e:
             print(
-                "Warning: unable to read dictionary file '%s'. (Reason: %s)" %
-                (filename, str(e)), file=sys.stderr)
+                'Warning: unable to read dictionary file '
+                "'{}'. (Reason: {})".format(filename, e),
+                file=sys.stderr)
         except ParsingError as e:
             raise SystemExit(
-                "Error while parsing dictionary file '{}': {}".format(filename,
-                                                                      e))
+                "Error while parsing dictionary file '{}': {}".format(
+                    filename, e))
+
+        if self._natural_dict is None:
+            print('Continuing with empty natural dictionary\n',
+                  file=sys.stderr)
+            self._natural_dict = PrefixMatchCorpus(DICT_TYPE_NATURAL, '', [])
 
     def match(self, token, filename, file_id):
         """Return True if the token matches any of the applicable corpora.
