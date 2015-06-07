@@ -1,2 +1,4 @@
-include scspell.py README.rst COPYING.txt SCOWL-LICENSE.txt
+include scspell.py README.rst COPYING.txt SCOWL-LICENSE.txt MANIFEST.in
 recursive-include scspell *
+exclude test.cram
+exclude tox.ini
