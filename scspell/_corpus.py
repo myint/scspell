@@ -37,7 +37,7 @@ DICT_TYPE_FILEID = 'FILEID'        # Identifies file-specific dictionary
 
 
 # Valid file ID strings take this form
-file_id_regex = re.compile(r'[a-zA-Z0-9_\-]+')
+FILE_ID_REGEX = re.compile(r'[a-zA-Z0-9_\-]+')
 
 
 class ParsingError(Exception):
@@ -495,7 +495,7 @@ class CorporaFile(object):
             return (dict_type, (descr, extensions))
 
         if dict_type == DICT_TYPE_FILEID:
-            if file_id_regex.match(metadata) is None:
+            if FILE_ID_REGEX.match(metadata) is None:
                 raise ParsingError(
                     '%s metadata string "%s" on line %u is not a valid file '
                     'ID.' % DICT_TYPE_FILEID, metadata, line_num)

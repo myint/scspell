@@ -80,19 +80,19 @@ SCSPELL_CONF = os.path.join(USER_DATA_DIR, 'scspell.conf')
 # Treat anything alphanumeric as a token of interest, as long as it is not
 # immediately preceded by a single backslash.  (The string "\ntext" should
 # match on "text" rather than "ntext".)
-token_regex = re.compile(r'(?<![^\\]\\)\w+')
+TOKEN_REGEX = re.compile(r'(?<![^\\]\\)\w+')
 
 # Hex digits will be treated as a special case, because they can look like
 # word-like even though they are actually numeric
-hex_regex = re.compile(r'0x[0-9a-fA-F]+')
+HEX_REGEX = re.compile(r'0x[0-9a-fA-F]+')
 
 # We assume that tokens will be split using either underscores,
 # digits, or camelCase conventions (or both)
-us_regex = re.compile(r'[_\d]+')
-camel_word_regex = re.compile(r'([A-Z][a-z]*)')
+US_REGEX = re.compile(r'[_\d]+')
+CAMEL_WORD_REGEX = re.compile(r'([A-Z][a-z]*)')
 
 # File-id specifiers take this form
-file_id_regex = re.compile(r'scspell-id:[ \t]*([a-zA-Z0-9_\-]+)')
+FILE_ID_REGEX = re.compile(r'scspell-id:[ \t]*([a-zA-Z0-9_\-]+)')
 
 
 class MatchDescriptor(object):
@@ -187,13 +187,13 @@ def decompose_token(token):
     :returns: sequence of subtoken strings
 
     """
-    us_parts = us_regex.split(token)
+    us_parts = US_REGEX.split(token)
     if ''.join(us_parts).isupper():
         # This looks like a CONSTANT_DEFINE_OF_SOME_SORT
         subtokens = us_parts
     else:
         camelcase_parts = [
-            camel_word_regex.split(
+            CAMEL_WORD_REGEX.split(
                 us_part) for us_part in us_parts]
         subtokens = sum(camelcase_parts, [])
     # This use of split() will create many empty strings
@@ -354,7 +354,7 @@ def handle_failed_check_interactively(
     print("%s:%u: Unmatched '%s' --> {%s}" %
           (filename, match_desc.get_line_num(), token,
            ', '.join([st for st in unmatched_subtokens])))
-    match_regex = re.compile(re.escape(match_desc.get_token()))
+    MATCH_REGEX = re.compile(re.escape(match_desc.get_token()))
     while True:
         print("""\
    (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
@@ -377,7 +377,7 @@ def handle_failed_check_interactively(
             else:
                 ignores.add(replacement.lower())
                 tail = re.sub(
-                    match_regex, replacement, match_desc.get_remainder(),
+                    MATCH_REGEX, replacement, match_desc.get_remainder(),
                     1 if ch == 'r' else 0)
                 print()
                 return (match_desc.get_prefix() + tail,
@@ -447,7 +447,7 @@ def spell_check_token(
 
     """
     token = match_desc.get_token()
-    if (token.lower() not in ignores) and (hex_regex.match(token) is None):
+    if (token.lower() not in ignores) and (HEX_REGEX.match(token) is None):
         subtokens = decompose_token(token)
         unmatched_subtokens = [
             st for st in subtokens if len(st) > LEN_THRESHOLD and
@@ -485,7 +485,7 @@ def spell_check_file(filename, dicts, ignores, report_only):
 
     # Look for a file ID
     file_id = None
-    m_id = file_id_regex.search(source_text)
+    m_id = FILE_ID_REGEX.search(source_text)
     if m_id is not None:
         file_id = m_id.group(1)
         _util.mutter(
@@ -497,7 +497,7 @@ def spell_check_file(filename, dicts, ignores, report_only):
     data = source_text
     pos = 0
     while True:
-        m = token_regex.search(data, pos)
+        m = TOKEN_REGEX.search(data, pos)
         if m is None:
             break
         if (m_id is not None and
