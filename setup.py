@@ -61,7 +61,7 @@ setup(
     cmdclass={
         'install_scripts': ScriptInstaller,
         'bdist_wininst': WinInstCreator},
-    license='http://www.gnu.org/licenses/old-licenses/gpl-2.0.html',
+    license='GPL 2',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
