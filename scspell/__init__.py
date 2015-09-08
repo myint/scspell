@@ -480,7 +480,7 @@ def spell_check_file(filename, dicts, ignores, report_only):
             source_text = source_file.read()
     except IOError as e:
         print("Error: can't read source file '{}'; "
-              'skipping (reason: %s)'.format(filename, e))
+              'skipping (reason: {})'.format(filename, e))
         return
 
     # Look for a file ID
