@@ -39,10 +39,12 @@ from ._corpus import CorporaFile
 from . import _util
 
 from ._util import set_verbosity
-assert set_verbosity
 from ._util import VERBOSITY_NORMAL
-assert VERBOSITY_NORMAL is not None
 from ._util import VERBOSITY_MAX
+
+
+assert set_verbosity
+assert VERBOSITY_NORMAL is not None
 assert VERBOSITY_MAX is not None
 
 

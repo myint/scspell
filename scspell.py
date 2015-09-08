@@ -68,7 +68,6 @@ def main():
     parser.add_option('-D', '--debug', dest='debug', action='store_true',
                       help='print extra debugging information')
 
-
     (opts, files) = parser.parse_args()
     if opts.debug:
         scspell.set_verbosity(scspell.VERBOSITY_MAX)
