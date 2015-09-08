@@ -413,7 +413,8 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
         print(
             "%s:%u: '%s' not found in dictionary (from token '%s')" %
             (filename, match_desc.get_line_num(), unmatched_subtokens[0],
-             token))
+             token),
+            file=sys.stderr)
     else:
         unmatched_subtokens = ', '.join(
             "'%s'" %
@@ -423,7 +424,8 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
             (filename,
              match_desc.get_line_num(),
              unmatched_subtokens,
-             token))
+             token),
+            file=sys.stderr)
     # Default: text is unchanged
     return (match_desc.get_string(),
             match_desc.get_ofs() + len(match_desc.get_token()))
@@ -441,9 +443,9 @@ def spell_check_token(
     :param dicts: dictionary set against which to perform matching
     :type  dicts: CorporaFile
     :param ignores: set of tokens to ignore for this session
-    :returns: (text, ofs) where ``text`` is the (possibly modified) source
-              contents and ``ofs`` is the byte offset within the text where
-              earching shall resume.
+    :returns: ((text, ofs), error_found) where ``text`` is the (possibly
+    modified) source contents and ``ofs`` is the byte offset within the text
+    where searching shall resume.
 
     """
     token = match_desc.get_token()
@@ -456,13 +458,18 @@ def spell_check_token(
         if unmatched_subtokens:
             unmatched_subtokens = make_unique(unmatched_subtokens)
             if report_only:
-                return report_failed_check(match_desc, filename,
-                                           unmatched_subtokens)
+                return (report_failed_check(match_desc, filename,
+                                            unmatched_subtokens),
+                        True)
             else:
-                return handle_failed_check_interactively(
-                    match_desc, filename, file_id, unmatched_subtokens,
-                    dicts, ignores)
-    return (match_desc.get_string(), match_desc.get_ofs() + len(token))
+                return (
+                    handle_failed_check_interactively(
+                        match_desc, filename, file_id, unmatched_subtokens,
+                        dicts, ignores),
+                    True)
+    return (
+        (match_desc.get_string(), match_desc.get_ofs() + len(token)),
+        False)
 
 
 def spell_check_file(filename, dicts, ignores, report_only):
@@ -480,8 +487,9 @@ def spell_check_file(filename, dicts, ignores, report_only):
             source_text = source_file.read()
     except IOError as e:
         print("Error: can't read source file '{}'; "
-              'skipping (reason: {})'.format(filename, e))
-        return
+              'skipping (reason: {})'.format(filename, e),
+              file=sys.stderr)
+        return False
 
     # Look for a file ID
     file_id = None
@@ -496,6 +504,7 @@ def spell_check_file(filename, dicts, ignores, report_only):
     # Search for tokens to spell-check
     data = source_text
     pos = 0
+    okay = True
     while True:
         m = TOKEN_REGEX.search(data, pos)
         if m is None:
@@ -506,8 +515,12 @@ def spell_check_file(filename, dicts, ignores, report_only):
             # This is matching the file-id.  Skip over it.
             pos = m_id.end()
             continue
-        data, pos = spell_check_token(MatchDescriptor(
+        result = spell_check_token(MatchDescriptor(
             data, m), filename, file_id, dicts, ignores, report_only)
+        (data, pos) = result[0]
+        error_found = result[1]
+        if error_found:
+            okay = False
 
     # Write out the source file if it was modified
     if data != source_text:
@@ -515,8 +528,10 @@ def spell_check_file(filename, dicts, ignores, report_only):
             try:
                 source_file.write(data)
             except IOError as e:
-                print(str(e))
-                return
+                print(str(e), file=sys.stderr)
+                return False
+
+    return okay
 
 
 def verify_user_data_dir():
@@ -614,10 +629,15 @@ def spell_check(source_filenames, override_dictionary=None, report_only=False):
 
     """
     verify_user_data_dir()
+
     dict_file = locate_dictionary(
     ) if override_dictionary is None else override_dictionary
+
     dict_file = os.path.expandvars(os.path.expanduser(dict_file))
+    okay = True
     with CorporaFile(dict_file) as dicts:
         ignores = set()
         for f in source_filenames:
-            spell_check_file(f, dicts, ignores, report_only)
+            if not spell_check_file(f, dicts, ignores, report_only):
+                okay = False
+    return okay

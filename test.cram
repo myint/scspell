@@ -9,6 +9,7 @@ Test spelling mistake.
     $ echo 'This is blabbb.' > bad.txt
     $ $SCSPELL bad.txt
     bad.txt:1: 'blabbb' not found in dictionary (from token 'blabbb')
+    [1]
 
 Test okay file.
 
