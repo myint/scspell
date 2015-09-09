@@ -37,7 +37,7 @@ def main():
         help='set location of dictionary to FILE, for current session only',
         metavar='FILE', action='store')
     parser.add_argument('--report-only', dest='report', action='store_true',
-                           help='non-interactive report of spelling errors')
+                        help='non-interactive report of spelling errors')
     parser.add_argument(
         '--set-dictionary', dest='dictionary',
         help='permanently set location of dictionary to FILE', metavar='FILE',
@@ -47,9 +47,9 @@ def main():
         help='export current dictionary to FILE', metavar='FILE',
         action='store')
     parser.add_argument('-i', '--gen-id', dest='gen_id', action='store_true',
-                      help='generate a unique file-id string')
+                        help='generate a unique file-id string')
     parser.add_argument('-D', '--debug', dest='debug', action='store_true',
-                      help='print extra debugging information')
+                        help='print extra debugging information')
     parser.add_argument('--version', action='version',
                         version='%(prog)s ' + scspell.__version__)
     parser.add_argument('files', nargs='+', help='files to check')
