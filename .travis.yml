@@ -5,6 +5,7 @@ python:
     - "3.2"
     - "3.3"
     - "3.4"
+    - "3.5"
 
 before_install:
     - pip install --quiet git+https://github.com/myint/cram.git
