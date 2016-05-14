@@ -82,7 +82,10 @@ SCSPELL_CONF = os.path.join(USER_DATA_DIR, 'scspell.conf')
 # Treat anything alphanumeric as a token of interest, as long as it is not
 # immediately preceded by a single backslash.  (The string "\ntext" should
 # match on "text" rather than "ntext".)
-TOKEN_REGEX = re.compile(r'(?<![^\\]\\)\w+')
+C_ESCAPE_TOKEN_REGEX = re.compile(r'(?<![^\\]\\)\w+')
+
+# \ is not a character escape in e.g. LaTeX
+TOKEN_REGEX = re.compile(r'\w+')
 
 # Hex digits will be treated as a special case, because they can look like
 # word-like even though they are actually numeric
@@ -474,7 +477,7 @@ def spell_check_token(
         False)
 
 
-def spell_check_file(filename, dicts, ignores, report_only):
+def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
     """Spell check a single file.
 
     :param filename: name of the file to check
@@ -503,12 +506,17 @@ def spell_check_file(filename, dicts, ignores, report_only):
             '(File contains id "%s".)' %
             file_id)
 
+    if c_escapes:
+        token_regex = C_ESCAPE_TOKEN_REGEX
+    else:
+        token_regex = TOKEN_REGEX
+
     # Search for tokens to spell-check
     data = source_text
     pos = 0
     okay = True
     while True:
-        m = TOKEN_REGEX.search(data, pos)
+        m = token_regex.search(data, pos)
         if m is None:
             break
         if (m_id is not None and
@@ -621,7 +629,8 @@ def export_dictionary(filename):
     shutil.copyfile(locate_dictionary(), filename)
 
 
-def spell_check(source_filenames, override_dictionary=None, report_only=False):
+def spell_check(source_filenames, override_dictionary=None, report_only=False,
+                c_escapes=True):
     """Run the interactive spell checker on the set of source_filenames.
 
     If override_dictionary is provided, it shall be used as a dictionary
@@ -640,6 +649,6 @@ def spell_check(source_filenames, override_dictionary=None, report_only=False):
     with CorporaFile(dict_file) as dicts:
         ignores = set()
         for f in source_filenames:
-            if not spell_check_file(f, dicts, ignores, report_only):
+            if not spell_check_file(f, dicts, ignores, report_only, c_escapes):
                 okay = False
     return okay

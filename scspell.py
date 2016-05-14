@@ -48,6 +48,9 @@ def main():
         action='store')
     parser.add_argument('-i', '--gen-id', dest='gen_id', action='store_true',
                         help='generate a unique file-id string')
+    parser.add_argument('--no-c-escapes', dest='c_escapes',
+                        action='store_false', default=True,
+                        help="treat \\label as label, for e.g. LaTeX")
     parser.add_argument('-D', '--debug', dest='debug', action='store_true',
                         help='print extra debugging information')
     parser.add_argument('--version', action='version',
@@ -72,7 +75,8 @@ def main():
     else:
         okay = scspell.spell_check(args.files,
                                    args.override_filename,
-                                   args.report)
+                                   args.report,
+                                   args.c_escapes)
         return 0 if okay else 1
 
 
