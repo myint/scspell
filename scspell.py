@@ -39,6 +39,11 @@ def main():
     parser.add_argument('--report-only', dest='report', action='store_true',
                         help='non-interactive report of spelling errors')
     parser.add_argument(
+        '--relative-to', dest='relative_to',
+        help='Use file paths relative to here in fileid map.  '
+        'This is required to enable use of the fileid map',
+        action='store')
+    parser.add_argument(
         '--set-dictionary', dest='dictionary',
         help='permanently set location of dictionary to FILE', metavar='FILE',
         action='store')
@@ -75,6 +80,7 @@ def main():
     else:
         okay = scspell.spell_check(args.files,
                                    args.override_filename,
+                                   args.relative_to,
                                    args.report,
                                    args.c_escapes)
         return 0 if okay else 1

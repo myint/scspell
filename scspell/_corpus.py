@@ -24,6 +24,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import errno
+import io
+import json
 import os
 import re
 import sys
@@ -184,10 +187,17 @@ class PrefixMatchCorpus(Corpus):
 
 class CorporaFile(object):
 
-    """The CorporaFile manages a single file containing multiple corpora."""
+    """The CorporaFile manages a single file containing multiple corpora.
 
-    def __init__(self, filename):
-        """Construct an instance from the file with the given filename."""
+    May include filename<->fileid mapping file too."""
+
+    def __init__(self, filename, relative_to):
+        """Construct an instance from the file with the given filename.
+
+        relative_to is the directory to consider paths relative to wrt
+        the fileid mapping.
+
+        """
         self._filename = filename
 
         # Empty defaults
@@ -198,6 +208,14 @@ class CorporaFile(object):
         # Associates each extension with a file-type dictionary
         self._fileids = {}
         # Associates each file-id with a file-specific dictionary
+
+        self._relative_to = None
+        if relative_to is not None:
+            self._relative_to = os.path.normcase(os.path.realpath(relative_to))
+        self._fileid_mapping = {}
+        self._fileid_mapping_is_dirty = False
+        # mapping of fileid -> list-of-filenames for fileids not stored in the
+        # source files.
 
         try:
             with _util.open_with_encoding(filename, mode='r') as f:
@@ -217,6 +235,25 @@ class CorporaFile(object):
             print('Continuing with empty natural dictionary\n',
                   file=sys.stderr)
             self._natural_dict = PrefixMatchCorpus(DICT_TYPE_NATURAL, '', [])
+
+        if not self._relative_to:
+            return
+        mapping_file = self._filename + ".fileids.json"
+        try:
+            with io.open(mapping_file, mode='r', encoding='utf-8') as mf:
+                self._fileid_mapping = json.load(mf)
+                _util.mutter(_util.VERBOSITY_DEBUG,
+                             "got fileid mapping:\n{0}".format(self._fileid_mapping))
+        except IOError as e:
+            if e.errno == errno.ENOENT:
+                _util.mutter(_util.VERBOSITY_DEBUG,
+                             "No fileid mappings file {0}".format(
+                                 mapping_file))
+            else:
+                raise SystemExit(
+                    "Can't read fileid mappings file {0}: {1}: {2}".format(
+                        mapping_file, e.errno, e.strerror))
+
 
     def match(self, token, filename, file_id):
         """Return True if the token matches any of the applicable corpora.
@@ -313,6 +350,57 @@ class CorporaFile(object):
             self._fileids[file_id] = corpus
             corpus.add(token)
 
+    def _make_relative_filename(self, fq_filename):
+        """return fq_filename relative to self._relative_to"""
+        rt_len = len(self._relative_to)
+        if not fq_filename.startswith(self._relative_to):
+            raise SystemExit("Processing file {0} not within --relative-to {1}".
+                             format(fq_filename, self._relative_to))
+        rfn = fq_filename[len(self._relative_to):]
+
+        # if relative_to doesn't end in /, we want to make sure we
+        # trim the leading / (or /'es) from rfn
+        while len(rfn) > 0 and rfn[0] == '/':
+            rfn = rfn[1:]
+        if len(rfn) == 0:
+            raise SystemExit("Making {0} relative to {1}: There's nothing "
+                             "left!".format(fq_filename, self._relative_to))
+        return rfn
+
+    def new_file_and_fileid(self, fq_filename, file_id):
+        """Add a mapping for this filename and file_id"""
+
+        if self._relative_to is None:
+            raise AssertionError("new_file_and_fileid called without "
+                                 "--relative-to")
+        relfn = self._make_relative_filename(fq_filename)
+        for (fid,fnames) in self._fileid_mapping.items():
+            for fname in fnames:
+                if fname == relfn:
+                    raise AssertionError("{0} already has file_id {1}".format(
+                        fname, fid))
+        if file_id not in self._fileid_mapping:
+            self._fileid_mapping[file_id] = []
+        if relfn not in self._fileid_mapping[file_id]:
+            # todo: maintain mapping[file_id] as sorted list
+            # for more friendly human-editing
+            self._fileid_mapping[file_id].append(relfn)
+            self._fileid_mapping_is_dirty = True
+
+    def fileid_of_file(self, fq_filename):
+        # should really build the inverse hash for this lookup...
+        if self._relative_to is None:
+            return None
+        relfn = self._make_relative_filename(fq_filename)
+        for fileid,files in self._fileid_mapping.items():
+            if relfn in files:
+                file_id = fileid
+                _util.mutter(
+                    _util.VERBOSITY_DEBUG,
+                    '(fileid_mapping contains id "{0}".)'.format(file_id))
+                return file_id
+        return None
+
     def get_filetypes(self):
         """Get a list of file types with type-specific corpora."""
         return [corpus.get_name() for corpus in self._filetype_dicts]
@@ -367,6 +455,24 @@ class CorporaFile(object):
             except IOError as e:
                 print("Warning: unable to write dictionary file '{}' "
                       '(reason: {})'.format(self._filename, e))
+
+        if self._fileid_mapping_is_dirty:
+            if self._relative_to is None:
+                raise AssertionError("fileid mapping is dirty but " +
+                                     "relative_to is None")
+            mapping_file = self._filename + ".fileids.json"
+            try:
+                with io.open(mapping_file, mode='w', encoding='utf-8') as mf:
+                    # http://stackoverflow.com/questions/36003023/json-dump-failing-with-must-be-unicode-not-str-typeerror
+                    tstr = json.dumps(self._fileid_mapping, ensure_ascii=False,
+                                      indent=2)
+                    if isinstance(tstr, str):
+                        tstr = tstr.decode("utf-8")
+                    mf.write(tstr)
+                self._fileid_mapping_is_dirty = False
+            except IOError as e:
+                print("Warning: unable to write fileid mapping file '{0}' "
+                      "(reason: {1})".format(mapping_file, e))
 
     def _parse(self, lines):
         """Parse the lines into a set of corpora."""

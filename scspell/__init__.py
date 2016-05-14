@@ -27,6 +27,7 @@ import os
 import re
 import sys
 import shutil
+import uuid
 
 try:
     import ConfigParser
@@ -268,15 +269,41 @@ def handle_new_extension(ext, dicts):
             dicts.register_extension(ext, filetypes[selection])
             return True
 
+def build_add_prompt(offer_p, offer_f, offer_N):
+    """Build a prompt for adding a word to a dictionary
 
-def handle_add(unmatched_subtokens, filename, file_id, dicts):
+    :param offer_p: offer a (p)rogramming language dictionary
+    :type offer_p: bool
+    :param offer_f: offer a (f)ile-specific dictionary
+    :type offer_f: bool
+    :param offer_N: offer to create a (N)ew file-specific dictionary
+    :type offer_p: bool
+    :returns: prompt string"""
+
+    prompt = """\
+      Subtoken '%s':
+         (b)ack, (i)gnore, add to (n)atural language dictionary"""
+    if offer_p:
+        prompt += """, add to
+         (p)rogramming language dictionary"""
+    if offer_f:
+        prompt += """, add to
+         (f)ile-specific dictionary"""
+    if offer_N:
+        prompt += """, add to
+         (N)ew file-specific dictionary"""
+    prompt += """ [i]"""
+    return prompt
+
+
+def handle_add(unmatched_subtokens, filename, fq_filename, file_id_ref, dicts):
     """Handle addition of one or more subtokens to a dictionary.
 
     :param unmatched_subtokens: sequence of subtokens, each of which failed
            spell check
     :param filename: name of file containing the token
-    :param file_id: unique identifier for current file
-    :type  file_id: string or None
+    :param fq_filename: fully-qualified filename
+    :param file_id: unique identifier for current file: [string or None]
     :param dicts: dictionary set against which to perform matching
     :type  dicts: CorporaFile
     :returns: True if subtokens were handled, False if canceled
@@ -284,31 +311,17 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
     """
     (_, ext) = os.path.splitext(filename.lower())
 
-    if file_id is None:
-        if ext != '':
-            prompt = """\
-      Subtoken '%s':
-         (b)ack, (i)gnore, add to (p)rogramming language dictionary, or add to
-         (n)atural language dictionary? [i]"""
-        else:
-            prompt = """\
-      Subtoken '%s':
-         (b)ack, (i)gnore or add to (n)atural language dictionary? [i]"""
-    else:
-        if ext != '':
-            prompt = """\
-      Subtoken '%s':
-         (b)ack, (i)gnore, add to (p)rogramming language dictionary, add to
-         (f)ile-specific dictionary, or add to (n)atural language
-         dictionary? [i]"""
-        else:
-            prompt = """\
-      Subtoken '%s':
-         (b)ack, (i)gnore, add to (f)ile-specific dictionary, or add to
-         (n)atural language dictionary? [i]"""
+    prompt = None
 
     for subtoken in unmatched_subtokens:
         while True:
+            if prompt is None:
+                file_id = file_id_ref[0]
+                offer_p = (ext != '')
+                offer_f = (file_id is not None)
+                offer_N = dicts._relative_to is not None and not offer_f
+                prompt = build_add_prompt(offer_p, offer_f, offer_N)
+
             print(prompt % subtoken)
             ch = _portable.getch()
             if ch in (CTRL_C, CTRL_D, CTRL_Z):
@@ -320,7 +333,7 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
                 return False
             elif ch in ('i', '\r', '\n'):
                 break
-            elif ext != '' and ch == 'p':
+            elif offer_p and ch == 'p':
                 if dicts.add_by_extension(subtoken, ext):
                     break
                 else:
@@ -330,21 +343,32 @@ def handle_add(unmatched_subtokens, filename, file_id, dicts):
             elif ch == 'n':
                 dicts.add_natural(subtoken)
                 break
-            elif (file_id is not None) and (ch == 'f'):
+            elif offer_f and (ch == 'f'):
                 dicts.add_by_fileid(subtoken, file_id)
+                break
+            elif offer_N and (ch == 'N'):
+                # TBD: uuid.uuid1() call should be shared with scspell.py
+                file_id = str(uuid.uuid1())
+                file_id_ref[0] = file_id
+                print("New fileid {0} for {1}".format(file_id, filename),
+                      file=sys.stderr)
+                dicts.new_file_and_fileid(fq_filename, file_id)
+                dicts.add_by_fileid(subtoken, file_id)
+                prompt = None # reselect prompt now that file_id is not None
                 break
     return True
 
 
 def handle_failed_check_interactively(
-        match_desc, filename, file_id, unmatched_subtokens, dicts, ignores):
+        match_desc, filename, fq_filename, file_id_ref,
+        unmatched_subtokens, dicts, ignores):
     """Handle a token which failed the spell check operation.
 
     :param match_desc: description of the token matching instance
     :type  match_desc: MatchDescriptor
-    :param filename: name of file containing the token
-    :param file_id: unique identifier for current file
-    :type  file_id: string or None
+    :param filename: name of file containing the token, to be reported to user
+    :param fq_filename: fully-qualified filename
+    :param file_id_ref: unique identifier for current file: [string or None]
     :param unmatched_subtokens: sequence of subtokens, each of which failed
                                 spell check
     :param dicts: dictionary set against which to perform matching
@@ -388,7 +412,8 @@ def handle_failed_check_interactively(
                 return (match_desc.get_prefix() + tail,
                         match_desc.get_ofs() + len(replacement))
         elif ch == 'a':
-            if handle_add(unmatched_subtokens, filename, file_id, dicts):
+            if handle_add(unmatched_subtokens, filename, fq_filename,
+                          file_id_ref, dicts):
                 break
         elif ch == 'c':
             for ctx in match_desc.get_context():
@@ -437,12 +462,14 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
 
 
 def spell_check_token(
-        match_desc, filename, file_id, dicts, ignores, report_only):
+        match_desc, filename, fq_filename, file_id_ref,
+        dicts, ignores, report_only):
     """Spell check a single token.
 
     :param match_desc: description of the token matching instance
     :type  match_desc: MatchDescriptor
-    :param filename: name of file containing the token
+    :param filename: name of file containing the token, to be reported to user
+    :param fq_filename: fully-qualified filename
     :param file_id: unique identifier for this file
     :type  file_id: string or None
     :param dicts: dictionary set against which to perform matching
@@ -458,7 +485,7 @@ def spell_check_token(
         subtokens = decompose_token(token)
         unmatched_subtokens = [
             st for st in subtokens if len(st) > LEN_THRESHOLD and
-            (not dicts.match(st, filename, file_id)) and
+            (not dicts.match(st, filename, file_id_ref[0])) and
             (st not in ignores)]
         if unmatched_subtokens:
             unmatched_subtokens = make_unique(unmatched_subtokens)
@@ -469,8 +496,8 @@ def spell_check_token(
             else:
                 return (
                     handle_failed_check_interactively(
-                        match_desc, filename, file_id, unmatched_subtokens,
-                        dicts, ignores),
+                        match_desc, filename, fq_filename, file_id_ref,
+                        unmatched_subtokens, dicts, ignores),
                     True)
     return (
         (match_desc.get_string(), match_desc.get_ofs() + len(token)),
@@ -505,6 +532,10 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
             _util.VERBOSITY_DEBUG,
             '(File contains id "%s".)' %
             file_id)
+    else:
+        file_id = dicts.fileid_of_file(fq_filename)
+
+    file_id_ref = [file_id] # allow for spell_check to update file_id
 
     if c_escapes:
         token_regex = C_ESCAPE_TOKEN_REGEX
@@ -525,8 +556,9 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
             # This is matching the file-id.  Skip over it.
             pos = m_id.end()
             continue
-        result = spell_check_token(MatchDescriptor(
-            data, m), filename, file_id, dicts, ignores, report_only)
+        result = spell_check_token(MatchDescriptor(data, m),
+                                   filename, fq_filename, file_id_ref,
+                                   dicts, ignores, report_only)
         (data, pos) = result[0]
         error_found = result[1]
         if error_found:
@@ -629,8 +661,8 @@ def export_dictionary(filename):
     shutil.copyfile(locate_dictionary(), filename)
 
 
-def spell_check(source_filenames, override_dictionary=None, report_only=False,
-                c_escapes=True):
+def spell_check(source_filenames, override_dictionary=None,
+                relative_to=None, report_only=False, c_escapes=True):
     """Run the interactive spell checker on the set of source_filenames.
 
     If override_dictionary is provided, it shall be used as a dictionary
@@ -646,7 +678,7 @@ def spell_check(source_filenames, override_dictionary=None, report_only=False,
 
     dict_file = os.path.expandvars(os.path.expanduser(dict_file))
     okay = True
-    with CorporaFile(dict_file) as dicts:
+    with CorporaFile(dict_file, relative_to) as dicts:
         ignores = set()
         for f in source_filenames:
             if not spell_check_file(f, dicts, ignores, report_only, c_escapes):
