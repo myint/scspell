@@ -684,3 +684,22 @@ def spell_check(source_filenames, override_dictionary=None,
             if not spell_check_file(f, dicts, ignores, report_only, c_escapes):
                 okay = False
     return okay
+
+def merge_fileids(merge_to, merge_from,
+                  override_dictionary=None, relative_to=None):
+    """Merge the fileids specified by merge_to and merge_from.
+
+    Combine the wordlists in the specified dictionary, and their fileid map
+    entries.  They each may be either a fileid, or a filename.  If a filename,
+    the fileid corresponding to it is the one merged.
+
+    Use merge_to for the result, discarding merge_from."""
+    verify_user_data_dir()
+
+    dict_file = locate_dictionary(
+    ) if override_dictionary is None else override_dictionary
+
+    dict_file = os.path.expandvars(os.path.expanduser(dict_file))
+
+    with CorporaFile(dict_file, relative_to) as dicts:
+        dicts.merge_fileids(merge_to, merge_from)

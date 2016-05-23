@@ -384,7 +384,7 @@ class CorporaFile(object):
         relfn = self._make_relative_filename(fq_filename)
         if relfn in self._revfileid_mapping:
             raise AssertionError("{0} already has file_id {1}".format(
-                fname, fid))
+                relfn, self._revfileid_mapping[relfn]))
         self._revfileid_mapping[relfn] = file_id
         if file_id not in self._fileid_mapping:
             self._fileid_mapping[file_id] = []
@@ -394,14 +394,68 @@ class CorporaFile(object):
                 self._fileid_mapping[file_id])
             self._fileid_mapping_is_dirty = True
 
+    def fileid_of_rel_file(self, rel_filename):
+        try:
+            return self._revfileid_mapping[rel_filename]
+        except:
+            return None
+
     def fileid_of_file(self, fq_filename):
         if self._relative_to is None:
             return None
         relfn = self._make_relative_filename(fq_filename)
-        try:
-            return self._revfileid_mapping[relfn]
-        except:
-            return None
+        return self.fileid_of_rel_file(relfn)
+
+    def fileid_exists(self, file_id):
+        if file_id in self._fileid_mapping:
+            return True
+        return False
+
+    def merge_fileids(self, merge_to, merge_from):
+        if self.fileid_exists(merge_to):
+            id_to = merge_to
+        else:
+            fnto = merge_to
+            if self._relative_to is not None:
+                toasfqfn = os.path.normcase(os.path.realpath(fnto))
+                fnto = self._make_relative_filename(toasfqfn)
+            id_to = self.fileid_of_rel_file(fnto)
+            if id_to is None:
+                raise SystemExit("Can't find merge_to {0} as fileid or file".
+                                 format(merge_to))
+
+        if self.fileid_exists(merge_from):
+            id_from = merge_from
+        else:
+            fnfrom = merge_from
+            if self._relative_to is not None:
+                fromasfqfn = os.path.normcase(os.path.realpath(fnfrom))
+                fnfrom = self._make_relative_filename(fromasfqfn)
+            id_from = self.fileid_of_rel_file(fnfrom)
+            if id_from is None:
+                raise SystemExit("Can't find merge_from {0} as fileid or file".
+                                 format(id_from))
+
+        _util.mutter(_util.VERBOSITY_DEBUG,
+                     "Going to merge {id_from} into {id_to}".format(
+                         id_from=id_from, id_to=id_to))
+
+        # merge wordlists
+        fromcorpus = self._fileids[id_from]
+        tocorpus = self._fileids[id_to]
+        for t in fromcorpus._tokens:
+            tocorpus.add(t)
+        del self._fileids[id_from]
+        self._fileid_dicts.remove(fromcorpus)
+
+        # Add id_from's files to id_to
+        fromfiles = self._fileid_mapping[id_from]
+        tofiles = self._fileid_mapping[id_to]
+        for f in fromfiles:
+            tofiles.append(f)
+            self._revfileid_mapping[f] = id_to
+        self._fileid_mapping[id_to] = sorted(tofiles)
+        self._fileid_mapping_is_dirty = True
 
     def get_filetypes(self):
         """Get a list of file types with type-specific corpora."""
@@ -444,6 +498,7 @@ class CorporaFile(object):
             dirty = dirty or corpus.is_dirty()
         for corpus in self._fileid_dicts:
             dirty = dirty or corpus.is_dirty()
+        dirty = dirty or self._fileid_mapping_is_dirty
         if dirty:
             try:
                 with _util.open_with_encoding(self._filename, mode='w') as f:

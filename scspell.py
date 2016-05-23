@@ -60,6 +60,19 @@ def main():
         action='store')
     dictgroup.add_argument('-i', '--gen-id', dest='gen_id', action='store_true',
                            help='generate a unique file-id string')
+    dictgroup.add_argument('--merge-fileids', nargs=2,
+                           metavar=('TOID', 'FROMID'),
+                           help="""merge these two fileids, keeping
+                           TOID and discarding FROMID.  Combine their
+                           wordlists in the dictionary, and the
+                           filenames associated with them in the
+                           fileid map.  TOID and FROMID may be given
+                           as fileids, or as filenames in which case
+                           the fileids corresponding to those files
+                           are operated on.  Does NOT look for or consider
+                           any fileids embedded in to-be-spellchecked files.
+                           If your filenames look like fileids, do it by
+                           hand.""")
 
     parser.add_argument('-D', '--debug', dest='debug', action='store_true',
                         help='print extra debugging information')
@@ -80,6 +93,9 @@ def main():
         scspell.export_dictionary(args.export_filename)
         print("Exported dictionary to '{}'".format(args.export_filename),
               file=sys.stderr)
+    elif args.merge_fileids is not None:
+        scspell.merge_fileids(args.merge_fileids[0], args.merge_fileids[1],
+                              args.override_filename, args.relative_to)
     elif len(args.files) < 1:
         parser.error('No files specified')
     else:
