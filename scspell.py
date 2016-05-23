@@ -32,30 +32,35 @@ import scspell
 def main():
     parser = argparse.ArgumentParser(description=__doc__, prog='scspell')
 
-    parser.add_argument(
+    dictgroup = parser.add_argument_group("dictionary file management")
+    spellgroup = parser.add_argument_group("spellcheck control")
+
+    spellgroup.add_argument('--report-only', dest='report', action='store_true',
+                            help='non-interactive report of spelling errors')
+    spellgroup.add_argument('--no-c-escapes', dest='c_escapes',
+                            action='store_false', default=True,
+                            help="treat \\label as label, for e.g. LaTeX")
+
+    dictgroup.add_argument(
         '--override-dictionary', dest='override_filename',
         help='set location of dictionary to FILE, for current session only',
         metavar='FILE', action='store')
-    parser.add_argument('--report-only', dest='report', action='store_true',
-                        help='non-interactive report of spelling errors')
-    parser.add_argument(
+    dictgroup.add_argument(
+        '--set-dictionary', dest='dictionary',
+        help='permanently set location of dictionary to FILE', metavar='FILE',
+        action='store')
+    dictgroup.add_argument(
+        '--export-dictionary', dest='export_filename',
+        help='export current dictionary to FILE', metavar='FILE',
+        action='store')
+    dictgroup.add_argument(
         '--relative-to', dest='relative_to',
         help='Use file paths relative to here in fileid map.  '
         'This is required to enable use of the fileid map',
         action='store')
-    parser.add_argument(
-        '--set-dictionary', dest='dictionary',
-        help='permanently set location of dictionary to FILE', metavar='FILE',
-        action='store')
-    parser.add_argument(
-        '--export-dictionary', dest='export_filename',
-        help='export current dictionary to FILE', metavar='FILE',
-        action='store')
-    parser.add_argument('-i', '--gen-id', dest='gen_id', action='store_true',
-                        help='generate a unique file-id string')
-    parser.add_argument('--no-c-escapes', dest='c_escapes',
-                        action='store_false', default=True,
-                        help="treat \\label as label, for e.g. LaTeX")
+    dictgroup.add_argument('-i', '--gen-id', dest='gen_id', action='store_true',
+                           help='generate a unique file-id string')
+
     parser.add_argument('-D', '--debug', dest='debug', action='store_true',
                         help='print extra debugging information')
     parser.add_argument('--version', action='version',
