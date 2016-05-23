@@ -24,6 +24,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import OrderedDict
 import errno
 import io
 import json
@@ -216,6 +217,8 @@ class CorporaFile(object):
         self._fileid_mapping_is_dirty = False
         # mapping of fileid -> list-of-filenames for fileids not stored in the
         # source files.
+        self._revfileid_mapping = {}
+        # Reverse map of the above, individual filename -> fileid
 
         try:
             with _util.open_with_encoding(filename, mode='r') as f:
@@ -253,6 +256,11 @@ class CorporaFile(object):
                 raise SystemExit(
                     "Can't read fileid mappings file {0}: {1}: {2}".format(
                         mapping_file, e.errno, e.strerror))
+
+        # Build reverse map
+        for k,v in self._fileid_mapping.iteritems():
+            for f in v:
+                self._revfileid_mapping[f] = k
 
 
     def match(self, token, filename, file_id):
@@ -374,32 +382,26 @@ class CorporaFile(object):
             raise AssertionError("new_file_and_fileid called without "
                                  "--relative-to")
         relfn = self._make_relative_filename(fq_filename)
-        for (fid,fnames) in self._fileid_mapping.items():
-            for fname in fnames:
-                if fname == relfn:
-                    raise AssertionError("{0} already has file_id {1}".format(
-                        fname, fid))
+        if relfn in self._revfileid_mapping:
+            raise AssertionError("{0} already has file_id {1}".format(
+                fname, fid))
+        self._revfileid_mapping[relfn] = file_id
         if file_id not in self._fileid_mapping:
             self._fileid_mapping[file_id] = []
         if relfn not in self._fileid_mapping[file_id]:
-            # todo: maintain mapping[file_id] as sorted list
-            # for more friendly human-editing
             self._fileid_mapping[file_id].append(relfn)
+            self._fileid_mapping[file_id] = sorted(
+                self._fileid_mapping[file_id])
             self._fileid_mapping_is_dirty = True
 
     def fileid_of_file(self, fq_filename):
-        # should really build the inverse hash for this lookup...
         if self._relative_to is None:
             return None
         relfn = self._make_relative_filename(fq_filename)
-        for fileid,files in self._fileid_mapping.items():
-            if relfn in files:
-                file_id = fileid
-                _util.mutter(
-                    _util.VERBOSITY_DEBUG,
-                    '(fileid_mapping contains id "{0}".)'.format(file_id))
-                return file_id
-        return None
+        try:
+            return self._revfileid_mapping[relfn]
+        except:
+            return None
 
     def get_filetypes(self):
         """Get a list of file types with type-specific corpora."""
@@ -460,12 +462,26 @@ class CorporaFile(object):
             if self._relative_to is None:
                 raise AssertionError("fileid mapping is dirty but " +
                                      "relative_to is None")
+
+            # Build an OrderedDict sorted by first filename of id, so the
+            # mapping file is more reader-friendly.  It will also be
+            # more stable, so it will result in less churn if it's checked
+            # into git.
+            od = OrderedDict()
+            copiedids = set({})
+            sortedfilenames = sorted(self._revfileid_mapping)
+            for fn in sortedfilenames:
+                id = self._revfileid_mapping[fn]
+                if id in copiedids:
+                    continue
+                copiedids.add(id)
+                od[id] = sorted(self._fileid_mapping[id])
+
             mapping_file = self._filename + ".fileids.json"
             try:
                 with io.open(mapping_file, mode='w', encoding='utf-8') as mf:
                     # http://stackoverflow.com/questions/36003023/json-dump-failing-with-must-be-unicode-not-str-typeerror
-                    tstr = json.dumps(self._fileid_mapping, ensure_ascii=False,
-                                      indent=2)
+                    tstr = json.dumps(od, ensure_ascii=False, indent=2)
                     if isinstance(tstr, str):
                         tstr = tstr.decode("utf-8")
                     mf.write(tstr)
