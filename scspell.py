@@ -73,6 +73,12 @@ def main():
                            any fileids embedded in to-be-spellchecked files.
                            If your filenames look like fileids, do it by
                            hand.""")
+    dictgroup.add_argument('--rename-file', nargs=2,
+                           metavar=('FROMFILE', 'TOFILE'),
+                           help="""inform scspell that FROMFILE has been
+                           renamed TOFILE.  If an entry in the fileid mapping
+                           references FROMFILE, it will be modified to reference
+                           TOFILE instead.""")
 
     parser.add_argument('-D', '--debug', dest='debug', action='store_true',
                         help='print extra debugging information')
@@ -96,6 +102,9 @@ def main():
     elif args.merge_fileids is not None:
         scspell.merge_fileids(args.merge_fileids[0], args.merge_fileids[1],
                               args.override_filename, args.relative_to)
+    elif args.rename_file is not None:
+        scspell.rename_file(args.rename_file[0], args.rename_file[1],
+                            args.override_filename, args.relative_to)
     elif len(args.files) < 1:
         parser.error('No files specified')
     else:

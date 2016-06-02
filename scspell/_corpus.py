@@ -457,6 +457,43 @@ class CorporaFile(object):
         self._fileid_mapping[id_to] = sorted(tofiles)
         self._fileid_mapping_is_dirty = True
 
+    def delete_file(self, filename):
+        try:
+            id = self._revfileid_mapping[filename]
+        except:
+            return
+        _util.mutter(_util.VERBOSITY_NORMAL,
+                     "Removing {0} <-> {1} mappings".format(
+                         filename, id))
+        del self._revfileid_mapping[filename]
+        fns = self._fileid_mapping[id]
+        fns.remove(filename)
+        if len(fns) == 0:
+            del self._fileid_mapping[id]
+        self._fileid_mapping_is_dirty = True
+
+    def rename_file(self, rename_from, rename_to):
+        if rename_from not in self._revfileid_mapping:
+            _util.mutter(_util.VERBOSITY_NORMAL,
+                         "No fileid for " + rename_from)
+            return;
+        self.delete_file(rename_to)
+
+        id_from = self._revfileid_mapping[rename_from]
+
+        _util.mutter(_util.VERBOSITY_NORMAL,
+                     "Switching fileid {0} from {1} to {2}".format(
+                         id_from, rename_from, rename_to))
+
+        fns = self._fileid_mapping[id_from]
+        fns.remove(rename_from)
+        fns.append(rename_to)
+        self._fileid_mapping[id_from] = sorted(fns)
+
+        self._revfileid_mapping[rename_to] = id_from
+        del self._revfileid_mapping[rename_from]
+        self._fileid_mapping_is_dirty = True
+
     def get_filetypes(self):
         """Get a list of file types with type-specific corpora."""
         return [corpus.get_name() for corpus in self._filetype_dicts]

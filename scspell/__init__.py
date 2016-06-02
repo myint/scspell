@@ -661,6 +661,13 @@ def export_dictionary(filename):
     shutil.copyfile(locate_dictionary(), filename)
 
 
+def find_dict_file(override_dictionary):
+    verify_user_data_dir()
+    dict_file = locate_dictionary(
+    ) if override_dictionary is None else override_dictionary
+
+    return os.path.expandvars(os.path.expanduser(dict_file))
+
 def spell_check(source_filenames, override_dictionary=None,
                 relative_to=None, report_only=False, c_escapes=True):
     """Run the interactive spell checker on the set of source_filenames.
@@ -671,12 +678,8 @@ def spell_check(source_filenames, override_dictionary=None,
     :returns: None
 
     """
-    verify_user_data_dir()
+    dict_file = find_dict_file(override_dictionary)
 
-    dict_file = locate_dictionary(
-    ) if override_dictionary is None else override_dictionary
-
-    dict_file = os.path.expandvars(os.path.expanduser(dict_file))
     okay = True
     with CorporaFile(dict_file, relative_to) as dicts:
         ignores = set()
@@ -694,12 +697,15 @@ def merge_fileids(merge_to, merge_from,
     the fileid corresponding to it is the one merged.
 
     Use merge_to for the result, discarding merge_from."""
-    verify_user_data_dir()
-
-    dict_file = locate_dictionary(
-    ) if override_dictionary is None else override_dictionary
-
-    dict_file = os.path.expandvars(os.path.expanduser(dict_file))
+    dict_file = find_dict_file(override_dictionary)
 
     with CorporaFile(dict_file, relative_to) as dicts:
         dicts.merge_fileids(merge_to, merge_from)
+
+def rename_file(rename_from, rename_to,
+                override_dictionary=None, relative_to=None):
+    """Rename the file rename_from to rename_to, wrt. the fileid mappings."""
+    dict_file = find_dict_file(override_dictionary)
+
+    with CorporaFile(dict_file, relative_to) as dicts:
+        dicts.rename_file(rename_from, rename_to)
