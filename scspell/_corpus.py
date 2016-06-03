@@ -458,18 +458,32 @@ class CorporaFile(object):
         self._fileid_mapping_is_dirty = True
 
     def delete_file(self, filename):
+        fqfilename = os.path.normcase(os.path.realpath(filename))
+        relfilename = self._make_relative_filename(fqfilename)
         try:
-            id = self._revfileid_mapping[filename]
+            id = self._revfileid_mapping[relfilename]
         except:
+            if filename == relfilename:
+                reptstring = filename
+            else:
+                reptstring = "{0} ({1})".format(filename, relfilename)
+            _util.mutter(_util.VERBOSITY_NORMAL,
+                         "No fileid for {0}".format(reptstring))
             return
         _util.mutter(_util.VERBOSITY_NORMAL,
                      "Removing {0} <-> {1} mappings".format(
                          filename, id))
-        del self._revfileid_mapping[filename]
+        del self._revfileid_mapping[relfilename]
         fns = self._fileid_mapping[id]
-        fns.remove(filename)
+        fns.remove(relfilename)
         if len(fns) == 0:
+            # No remaining files use this fileid.  Remove all trace of it.
             del self._fileid_mapping[id]
+
+            # remove fileid-private dictionary from corpus.
+            corpus = self._fileids[id]
+            self._fileid_dicts.remove(corpus)
+            del self._fileids[id]
         self._fileid_mapping_is_dirty = True
 
     def rename_file(self, rename_from, rename_to):
@@ -477,7 +491,9 @@ class CorporaFile(object):
             _util.mutter(_util.VERBOSITY_NORMAL,
                          "No fileid for " + rename_from)
             return;
-        self.delete_file(rename_to)
+
+        if rename_to in self._revfileid_mapping:
+            self.delete_file(rename_to)
 
         id_from = self._revfileid_mapping[rename_from]
 

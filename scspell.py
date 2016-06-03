@@ -79,6 +79,14 @@ def main():
                            renamed TOFILE.  If an entry in the fileid mapping
                            references FROMFILE, it will be modified to reference
                            TOFILE instead.""")
+    dictgroup.add_argument('--delete-files', action='store_true', default=False,
+                           help=
+                           """inform scspell that the listed files have been
+                           deleted.  All fileid mappings for the files
+                           will be removed.  If all uses of that
+                           fileid have been removed, the corresponding
+                           file-private dictionary will be removed.  This will
+                           not spell check the files.""")
 
     parser.add_argument('-D', '--debug', dest='debug', action='store_true',
                         help='print extra debugging information')
@@ -105,6 +113,11 @@ def main():
     elif args.rename_file is not None:
         scspell.rename_file(args.rename_file[0], args.rename_file[1],
                             args.override_filename, args.relative_to)
+    elif args.delete_files:
+        if len(args.files) < 1:
+            parser.error('No files specified for delete')
+        scspell.delete_files(args.files,
+                             args.override_filename, args.relative_to)
     elif len(args.files) < 1:
         parser.error('No files specified')
     else:

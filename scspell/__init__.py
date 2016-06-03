@@ -709,3 +709,11 @@ def rename_file(rename_from, rename_to,
 
     with CorporaFile(dict_file, relative_to) as dicts:
         dicts.rename_file(rename_from, rename_to)
+
+def delete_files(delete_files,
+                override_dictionary=None, relative_to=None):
+    """Remove all trace of delete_file."""
+    dict_file = find_dict_file(override_dictionary)
+    with CorporaFile(dict_file, relative_to) as dicts:
+        for file in delete_files:
+            dicts.delete_file(file)
