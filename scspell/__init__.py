@@ -688,7 +688,7 @@ def spell_check(source_filenames, override_dictionary=None,
                 okay = False
     return okay
 
-def merge_fileids(merge_to, merge_from,
+def merge_fileids(merge_from, merge_to,
                   override_dictionary=None, relative_to=None):
     """Merge the fileids specified by merge_to and merge_from.
 
@@ -700,7 +700,7 @@ def merge_fileids(merge_to, merge_from,
     dict_file = find_dict_file(override_dictionary)
 
     with CorporaFile(dict_file, relative_to) as dicts:
-        dicts.merge_fileids(merge_to, merge_from)
+        dicts.merge_fileids(merge_from, merge_to)
 
 def rename_file(rename_from, rename_to,
                 override_dictionary=None, relative_to=None):

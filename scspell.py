@@ -65,7 +65,7 @@ def main():
         help='generate a unique file-id string')
     dictgroup.add_argument(
         '--merge-fileids', nargs=2,
-        metavar=('TOID', 'FROMID'),
+        metavar=('FROMID', 'TOID'),
         help="""merge these two fileids, keeping TOID and discarding FROMID.
         Combine their wordlists in the dictionary, and the filenames
         associated with them in the fileid map.  TOID and FROMID may
