@@ -192,13 +192,21 @@ class CorporaFile(object):
 
     May include filename<->fileid mapping file too."""
 
-    def __init__(self, filename, relative_to):
+    def __init__(self, filename, base_dicts, relative_to):
         """Construct an instance from the file with the given filename.
+
+        If there are any base_dicts, load them for checking against,
+        but don't modify them or write them out.
 
         relative_to is the directory to consider paths relative to wrt
         the fileid mapping.
 
         """
+        self._base_corpora_files = []
+        for fn in base_dicts:
+            self._base_corpora_files.append(
+                CorporaFile(fn, [], relative_to))
+
         self._filename = filename
 
         # Empty defaults
@@ -280,6 +288,10 @@ class CorporaFile(object):
         :returns: True if token matches a dictionary
 
         """
+        for bc in self._base_corpora_files:
+            if bc.match(token, filename, file_id):
+                return True
+
         if self._natural_dict.match(token):
             return True
 
@@ -554,8 +566,7 @@ class CorporaFile(object):
                 return
         raise AssertionError('type_descr "%s" not present.' % type_descr)
 
-    def close(self):
-        """Update the corpus file iff the contents were modified."""
+    def is_dirty(self):
         dirty = (
             self._natural_dict.is_dirty() if self._natural_dict is not None
             else False
@@ -565,7 +576,11 @@ class CorporaFile(object):
         for corpus in self._fileid_dicts:
             dirty = dirty or corpus.is_dirty()
         dirty = dirty or self._fileid_mapping_is_dirty
-        if dirty:
+        return dirty
+
+    def close(self):
+        """Update the corpus file iff the contents were modified."""
+        if self.is_dirty():
             try:
                 with _util.open_with_encoding(self._filename, mode='w') as f:
                     for corpus in self._filetype_dicts:
@@ -613,6 +628,16 @@ class CorporaFile(object):
             except IOError as e:
                 print("Warning: unable to write fileid mapping file '{0}' "
                       "(reason: {1})".format(mapping_file, e))
+
+        # Since we add words only to this, not to any base corpora
+        # file, there's nothing to do for the base files now.  But it
+        # seems like good form to call close() on them since we've
+        # "opened" them.  But be sure we won't actually end up writing
+        # any changes out.
+        for bc in self._base_corpora_files:
+            if bc.is_dirty():
+                raise AssertionError("_base_corpora_file is dirty")
+            bc.close()
 
     def _parse(self, lines):
         """Parse the lines into a set of corpora."""

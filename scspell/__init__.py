@@ -74,10 +74,9 @@ CTRL_Z = '\x1a'
 USER_DATA_DIR = _portable.get_data_dir('scspell')
 DICT_DEFAULT_LOC = os.path.join(USER_DATA_DIR, 'dictionary.txt')
 SCSPELL_DATA_DIR = os.path.normpath(
-    os.path.join(
-        os.path.dirname(
-            __file__),
-        'data'))
+    os.path.join(os.path.dirname(__file__), 'data'))
+SCSPELL_BUILTIN_DICT = os.path.join(SCSPELL_DATA_DIR, 'dictionary.txt')
+
 SCSPELL_CONF = os.path.join(USER_DATA_DIR, 'scspell.conf')
 
 # Treat anything alphanumeric as a token of interest, as long as it is not
@@ -586,11 +585,7 @@ def verify_user_data_dir():
     scratch."""
     if not os.path.exists(USER_DATA_DIR):
         os.makedirs(USER_DATA_DIR)
-        shutil.copyfile(
-            os.path.join(
-                SCSPELL_DATA_DIR,
-                'dictionary.txt'),
-            DICT_DEFAULT_LOC)
+        shutil.copyfile(SCSPELL_BUILTIN_DICT, DICT_DEFAULT_LOC)
 
 
 def locate_dictionary():
@@ -657,12 +652,17 @@ def set_dictionary(filename):
         config.write(f)
 
 
-def export_dictionary(filename):
+def export_dictionary(filename, base_dicts):
     """Export the current keyword dictionary to the specified file.
 
     :returns: None
 
     """
+    if (base_dicts):
+        raise SystemExit(
+                     "--export-dictionary doesn't support " +
+                     "--base-dict")
+        return
     shutil.copyfile(locate_dictionary(), filename)
 
 
@@ -675,6 +675,7 @@ def find_dict_file(override_dictionary):
 
 
 def spell_check(source_filenames, override_dictionary=None,
+                base_dicts=[],
                 relative_to=None, report_only=False, c_escapes=True):
     """Run the interactive spell checker on the set of source_filenames.
 
@@ -687,7 +688,7 @@ def spell_check(source_filenames, override_dictionary=None,
     dict_file = find_dict_file(override_dictionary)
 
     okay = True
-    with CorporaFile(dict_file, relative_to) as dicts:
+    with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
         ignores = set()
         for f in source_filenames:
             if not spell_check_file(f, dicts, ignores, report_only, c_escapes):
@@ -696,7 +697,7 @@ def spell_check(source_filenames, override_dictionary=None,
 
 
 def merge_file_ids(merge_from, merge_to,
-                   override_dictionary=None, relative_to=None):
+                   override_dictionary=None, base_dicts=[], relative_to=None):
     """Merge the fileids specified by merge_to and merge_from.
 
     Combine the wordlists in the specified dictionary, and their fileid map
@@ -706,23 +707,23 @@ def merge_file_ids(merge_from, merge_to,
     Use merge_to for the result, discarding merge_from."""
     dict_file = find_dict_file(override_dictionary)
 
-    with CorporaFile(dict_file, relative_to) as dicts:
+    with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
         dicts.merge_file_ids(merge_from, merge_to)
 
 
 def rename_file(rename_from, rename_to,
-                override_dictionary=None, relative_to=None):
+                override_dictionary=None, base_dicts=[], relative_to=None):
     """Rename the file rename_from to rename_to, wrt. the fileid mappings."""
     dict_file = find_dict_file(override_dictionary)
 
-    with CorporaFile(dict_file, relative_to) as dicts:
+    with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
         dicts.rename_file(rename_from, rename_to)
 
 
 def delete_files(delete_files,
-                 override_dictionary=None, relative_to=None):
+                 override_dictionary=None, base_dicts=[], relative_to=None):
     """Remove all trace of delete_file."""
     dict_file = find_dict_file(override_dictionary)
-    with CorporaFile(dict_file, relative_to) as dicts:
+    with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
         for file in delete_files:
             dicts.delete_file(file)
