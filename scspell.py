@@ -24,7 +24,6 @@ from __future__ import print_function
 
 import argparse
 import sys
-import uuid
 
 import scspell
 
@@ -103,7 +102,7 @@ def main():
         scspell.set_verbosity(scspell.VERBOSITY_MAX)
 
     if args.gen_id:
-        print('scspell-id: %s' % str(uuid.uuid1()))
+        print('scspell-id: %s' % scspell.get_new_fileid())
     elif args.dictionary is not None:
         scspell.set_dictionary(args.dictionary)
     elif args.export_filename is not None:

@@ -182,6 +182,10 @@ def make_unique(items):
         return False
     return [i for i in items if first_occurrence(i)]
 
+def get_new_fileid():
+    """Produce a new fileid string."""
+    return str(uuid.uuid1())
+
 
 def decompose_token(token):
     """Divide a token into a list of strings of letters.
@@ -347,8 +351,7 @@ def handle_add(unmatched_subtokens, filename, fq_filename, file_id_ref, dicts):
                 dicts.add_by_fileid(subtoken, file_id)
                 break
             elif offer_N and (ch == 'N'):
-                # TBD: uuid.uuid1() call should be shared with scspell.py
-                file_id = str(uuid.uuid1())
+                file_id = get_new_fileid()
                 file_id_ref[0] = file_id
                 print("New fileid {0} for {1}".format(file_id, filename),
                       file=sys.stderr)
