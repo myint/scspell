@@ -185,6 +185,10 @@ class PrefixMatchCorpus(Corpus):
         f.write('\n')
         self._mark_clean()
 
+MATCH_NATURAL = 0x1
+MATCH_FILETYPE = 0x2
+MATCH_FILEID = 0x4
+
 
 class CorporaFile(object):
 
@@ -278,39 +282,42 @@ class CorporaFile(object):
             for f in v:
                 self._revfileid_mapping[f] = k
 
-    def match(self, token, filename, file_id):
+    def match(self, token, filename, file_id,
+              match_in=MATCH_NATURAL | MATCH_FILETYPE | MATCH_FILEID):
         """Return True if the token matches any of the applicable corpora.
 
         :param token: string being matched
         :param filename: name of file containing token
         :param file_id: unique identifier for current file
         :type  file_id: string or None
+        :param match_in: Limit the corpora we search
         :returns: True if token matches a dictionary
 
         """
         for bc in self._base_corpora_files:
-            if bc.match(token, filename, file_id):
+            if bc.match(token, filename, file_id, match_in):
                 return True
 
-        if self._natural_dict.match(token):
+        if match_in & MATCH_NATURAL and self._natural_dict.match(token):
             return True
 
-        (_, ext) = os.path.splitext(filename.lower())
-        try:
-            corpus = self._extensions[ext]
-            _util.mutter(
-                _util.VERBOSITY_DEBUG,
-                '(Matching against filetype "%s".)' %
-                corpus.get_name())
-            if corpus.match(token):
-                return True
-        except KeyError:
-            _util.mutter(
-                _util.VERBOSITY_DEBUG,
-                '(No filetype match for extension "%s".)' %
-                ext)
+        if match_in & MATCH_FILETYPE:
+            (_, ext) = os.path.splitext(filename.lower())
+            try:
+                corpus = self._extensions[ext]
+                _util.mutter(
+                    _util.VERBOSITY_DEBUG,
+                    '(Matching against filetype "%s".)' %
+                    corpus.get_name())
+                if corpus.match(token):
+                    return True
+            except KeyError:
+                _util.mutter(
+                    _util.VERBOSITY_DEBUG,
+                    '(No filetype match for extension "%s".)' %
+                    ext)
 
-        if file_id is not None:
+        if match_in & MATCH_FILEID and file_id is not None:
             try:
                 corpus = self._fileids[file_id]
                 _util.mutter(
@@ -326,6 +333,47 @@ class CorporaFile(object):
                     file_id)
 
         return False
+
+    def token_is_in_base_dict(self, token, filename, fileid,
+                              match_in=MATCH_NATURAL | MATCH_FILETYPE |
+                              MATCH_FILEID):
+        for bc in self._base_corpora_files:
+            if bc.match(token, filename, fileid, match_in):
+                return True
+
+    def filter_out_base_dicts(self):
+        # For each of our corpora, for each word, if that word is in a
+        # base dict, remove it from the corpora.
+        #
+        # Only remove it when the base dict match was at least as
+        # general as the corpora we're processing.  E.g., only remove
+        # from our natural_dict when the word was in the natural_dict
+        # of some base_dict; not if it was in a filetype or fileid dict.
+        # Similarly, only remove from our filetype dict if the word was
+        # in a natural_dict or the filetype dict with the same extension.
+        newtokens = []
+        for t in self._natural_dict._tokens:
+            if self.token_is_in_base_dict(t, None, None, MATCH_NATURAL):
+                # Going to change the dict, so mark it dirty
+                self._natural_dict._mark_dirty()
+            else:
+                newtokens.append(t)
+        self._natural_dict._tokens = newtokens
+
+        for ext in self._extensions.keys():
+            # Generate a fake file name to use to query the base dicts.
+            # Since we aren't using MATCH_FILEID, the basename won't be
+            # used, only the extension.
+            fakefn = "fake." + ext
+            file_type_corp = self._extensions[ext]
+            newtokens = []
+            for t in file_type_corp._tokens:
+                if self.token_is_in_base_dict(t, fakefn, None,
+                                              MATCH_NATURAL | MATCH_FILETYPE):
+                    file_type_corp._mark_dirty()
+                else:
+                    newtokens.append(t)
+            file_type_corp._tokens = newtokens
 
     def add_natural(self, token):
         """Add the token to the natural language corpus."""

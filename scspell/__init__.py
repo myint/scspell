@@ -696,6 +696,18 @@ def spell_check(source_filenames, override_dictionary=None,
     return okay
 
 
+def filter_out_base_dicts(override_dictionary=None, base_dicts=[]):
+    """Remove from our dictionary the words from the base dicts.
+
+    This can be useful for migrating from a version of scspell that
+    did not support the --base-dicts option.
+
+    """
+    dict_file = find_dict_file(override_dictionary)
+    with CorporaFile(dict_file, base_dicts, None) as dicts:
+        dicts.filter_out_base_dicts()
+
+
 def merge_file_ids(merge_from, merge_to,
                    override_dictionary=None, base_dicts=[], relative_to=None):
     """Merge the fileids specified by merge_to and merge_from.

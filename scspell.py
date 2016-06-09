@@ -64,6 +64,10 @@ def main():
         help="Use scspell's default wordlist as a base dictionary ({0})"
         .format(scspell.SCSPELL_BUILTIN_DICT))
     dict_group.add_argument(
+        '--filter-out-base-dicts', action='store_true',
+        help='Remove from the dictionary file '
+             'all the words from the basedicts')
+    dict_group.add_argument(
         '--relative-to', dest='relative_to',
         help='use file paths relative to here in file ID map; '
              'this is required to enable use of the fileid map',
@@ -131,6 +135,8 @@ def main():
         scspell.delete_files(args.files,
                              args.override_filename,
                              args.base_dicts, args.relative_to)
+    elif args.filter_out_base_dicts:
+        scspell.filter_out_base_dicts(args.override_filename, args.base_dicts)
     elif len(args.files) < 1:
         parser.error('No files specified')
     else:
