@@ -105,6 +105,36 @@ prompted with the following options for every subtoken:
     add to (n)atural language dictionary
         Add this subtoken to the natural language dictionary.
 
+
+Spell-checking Options
+----------------------
+
+--report-only\ 
+ This option causes **scspell** to report to stderr a report of the
+ subtokens that it considers to be in error, instead of offering the
+ interactive menu described above.  For each subtoken, the report
+ includes the filename, line number, and full token.  **scspell** will
+ exit with an exit code of 1 if any errors are found, or 0 if the run
+ was clean.
+
+ The format of the reported errors is different than the interactive
+ mode reports them.  With ``--report-only``, the above one would appear
+ like this::
+
+    filename.c:27: 'mispeld', 'varaible' were not found in the dictionary (from token 'someMispeldVaraible')
+
+
+--no-c-escapes\ 
+ By default, **scspell** treats files as if they contain C-style
+ character escapes.  That is, given ``printf("Hello\nworld.")``, it will
+ consider the tokens "``hello``" and "``world``", not "``nworld``".
+
+ The ``--no-c-escapes`` option causes **scspell** to not treat ``\`` as a
+ special character, for e.g. LaTeX files where you might write
+ ``\Alpha\beta\gamma\delta``.  Without this option, **scspell** would
+ see the tokens "``lpha``", "``eta``", "``amma``", and "``elta``".
+
+
 Creating File IDs
 -----------------
 
