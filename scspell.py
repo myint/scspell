@@ -55,7 +55,7 @@ def main():
                         help='print extra debugging information')
     parser.add_argument('--version', action='version',
                         version='%(prog)s ' + scspell.__version__)
-    parser.add_argument('files', nargs='+', help='files to check')
+    parser.add_argument('files', nargs='*', help='files to check')
 
     args = parser.parse_args()
 
