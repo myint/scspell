@@ -225,6 +225,32 @@ by using the ``--override-dictionary`` option::
 
     $ scspell --override-dictionary=/path/to/dictionary_file.txt source_file1 ...
 
+--base-dict BASE_DICT\
+   A *base dictionary* is consulted for its words, but is not modified
+   at runtime.  By using
+
+    $ scspell --base-dict ~/.dict --override-dictionary proj/.dict source...
+
+   words added at runtime will be added to ``proj/.dict``, and
+   ``~/.dict`` will be left alone.  This way ``proj/.dict`` may be
+   limited only to the words added for ``proj/``.  This may be more
+   convenient when ``proj/.dict`` is committed to source control and
+   shared by many users.
+
+--use-builtin-base-dict\
+   Use the dictionary file shipped with scspell as a base dictionary.
+
+--filter-out-base-dicts\
+   Read the dictionary specified by the normal dictionary selection
+   options, called the ``project dict`` here.  Read the base
+   dictionaries specified by the base-dict options.  Remove from the
+   project dict all the words from the base dicts, and write the
+   project dict back out.
+
+   This may be useful when a project dict has been generated with an
+   older version of **scspell** that did not support base dicts.
+
+
 Installation
 ------------
 
