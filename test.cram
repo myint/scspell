@@ -15,3 +15,14 @@ Test okay file.
 
     $ echo 'This is okay.' > good.txt
     $ $SCSPELL good.txt
+
+
+Test file with --override-dictionary and a fileid mapping entry
+
+    $ cp -a "$TESTDIR/tests" .
+    $ $SCSPELL --override-dictionary "tests/fileidmap/dictionary" \
+    > --relative-to "tests/fileidmap" \
+    > "tests/fileidmap/inputfile.txt" "tests/fileidmap/inputfile2.txt"
+    tests/fileidmap/inputfile.txt:3: 'soem' not found in dictionary (from token 'soem')
+    tests/fileidmap/inputfile2.txt:4: 'soem' not found in dictionary (from token 'soem')
+    [1]
