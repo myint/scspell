@@ -244,9 +244,16 @@ class CorporaFile(object):
         mapping_file = self._filename + ".fileids.json"
         try:
             with io.open(mapping_file, mode='r', encoding='utf-8') as mf:
-                self._fileid_mapping = json.load(mf)
-                _util.mutter(_util.VERBOSITY_DEBUG,
-                             "got fileid mapping:\n{0}".format(self._fileid_mapping))
+                try:
+                    self._fileid_mapping = json.load(mf)
+                    _util.mutter(_util.VERBOSITY_DEBUG,
+                                 "got fileid mapping:\n{0}".format(self._fileid_mapping))
+                except ValueError as e:
+                    # Error during file creation might leave an empty file
+                    # here.  Not necessarily fatal, but report it.
+                    _util.mutter(_util.VERBOSITY_NORMAL,
+                                 "Couldn't load fileid mapping from {0}: {1}"
+                                 .format(mapping_file, e))
         except IOError as e:
             if e.errno == errno.ENOENT:
                 _util.mutter(_util.VERBOSITY_DEBUG,
