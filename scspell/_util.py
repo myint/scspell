@@ -60,8 +60,20 @@ def open_with_encoding(filename, encoding=None, mode='r'):
 
 def detect_encoding(filename):
     """Return file encoding."""
+
+    # Thanks again stackoverflow for python 2 v 3,
+    # http://stackoverflow.com/questions/15032108/pythons-open-throws-different-errors-for-file-not-found-how-to-handle-b
+    fnotfound = getattr(__builtins__, 'FileNotFoundError', IOError)
+
+    # If the file doesn't exist, return the same thing detect_encoding gives
+    # us for an empty file, utf-8.
     try:
-        with open(filename, 'rb') as input_file:
+        input_file = open(filename, 'rb')
+    except fnotfound:
+        return 'utf-8'
+
+    try:
+        with input_file:
             from lib2to3.pgen2 import tokenize as lib2to3_tokenize
             encoding = lib2to3_tokenize.detect_encoding(input_file.readline)[0]
 
