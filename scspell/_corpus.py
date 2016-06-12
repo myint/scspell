@@ -258,7 +258,7 @@ class CorporaFile(object):
                         mapping_file, e.errno, e.strerror))
 
         # Build reverse map
-        for k,v in self._fileid_mapping.iteritems():
+        for k,v in self._fileid_mapping.items():
             for f in v:
                 self._revfileid_mapping[f] = k
 
