@@ -382,6 +382,14 @@ class CorporaFile(object):
                              "left!".format(fq_filename, self._relative_to))
         return rfn
 
+    def _fn_to_fq_rel(self, filename):
+        """Given a filename, returns the tuple
+           (fully-qualified filename, relative filename)
+           relative to the --relative-to path"""
+        fqfilename = os.path.normcase(os.path.realpath(filename))
+        relfilename = self._make_relative_filename(fqfilename)
+        return (fqfilename, relfilename)
+
     def new_file_and_fileid(self, fq_filename, file_id):
         """Add a mapping for this filename and file_id"""
 
@@ -424,8 +432,7 @@ class CorporaFile(object):
         else:
             fnto = merge_to
             if self._relative_to is not None:
-                toasfqfn = os.path.normcase(os.path.realpath(fnto))
-                fnto = self._make_relative_filename(toasfqfn)
+                (toasfqfn, fnto) = self._fn_to_fq_rel(fnto)
             id_to = self.fileid_of_rel_file(fnto)
             if id_to is None:
                 raise SystemExit("Can't find merge_to {0} as fileid or file".
@@ -436,8 +443,7 @@ class CorporaFile(object):
         else:
             fnfrom = merge_from
             if self._relative_to is not None:
-                fromasfqfn = os.path.normcase(os.path.realpath(fnfrom))
-                fnfrom = self._make_relative_filename(fromasfqfn)
+                (fromasfqfn, fnfrom) = self._fn_to_fq_rel(fnfrom)
             id_from = self.fileid_of_rel_file(fnfrom)
             if id_from is None:
                 raise SystemExit("Can't find merge_from {0} as fileid or file".
@@ -465,8 +471,7 @@ class CorporaFile(object):
         self._fileid_mapping_is_dirty = True
 
     def delete_file(self, filename):
-        fqfilename = os.path.normcase(os.path.realpath(filename))
-        relfilename = self._make_relative_filename(fqfilename)
+        (fqfilename, relfilename) = self._fn_to_fq_rel(filename)
         try:
             id = self._revfileid_mapping[relfilename]
         except:
