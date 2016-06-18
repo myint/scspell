@@ -499,27 +499,29 @@ class CorporaFile(object):
         self._fileid_mapping_is_dirty = True
 
     def rename_file(self, rename_from, rename_to):
-        if rename_from not in self._revfileid_mapping:
+        (from_fq, from_rel) = self._fn_to_fq_rel(rename_from)
+        (to_fq, to_rel) = self._fn_to_fq_rel(rename_to)
+        if from_rel not in self._revfileid_mapping:
             _util.mutter(_util.VERBOSITY_NORMAL,
                          "No fileid for " + rename_from)
             return;
 
-        if rename_to in self._revfileid_mapping:
-            self.delete_file(rename_to)
+        if to_rel in self._revfileid_mapping:
+            self.delete_file(to_rel)
 
-        id_from = self._revfileid_mapping[rename_from]
+        id_from = self._revfileid_mapping[from_rel]
 
         _util.mutter(_util.VERBOSITY_NORMAL,
                      "Switching fileid {0} from {1} to {2}".format(
-                         id_from, rename_from, rename_to))
+                         id_from, from_rel, to_rel))
 
         fns = self._fileid_mapping[id_from]
-        fns.remove(rename_from)
-        fns.append(rename_to)
+        fns.remove(from_rel)
+        fns.append(to_rel)
         self._fileid_mapping[id_from] = sorted(fns)
 
-        self._revfileid_mapping[rename_to] = id_from
-        del self._revfileid_mapping[rename_from]
+        self._revfileid_mapping[to_rel] = id_from
+        del self._revfileid_mapping[from_rel]
         self._fileid_mapping_is_dirty = True
 
     def get_filetypes(self):
