@@ -97,10 +97,17 @@ prompted with the following options for every subtoken:
 
     add to (f)ile-specific dictionary
         Add this subtoken to the dictionary associated with the
-        current file. **scspell** identifies unique files by scanning
-        for an embedded ID string, so you will only see this option
-        for files which have such an ID. See `Creating File IDs`
-        for details.
+        current file. You will see this option only for files which
+        have such an embedded ID or which have an entry in the fileid
+        mapping.  See `Creating File IDs`_ for details.
+
+    add to (N)ew file-specific dictionary
+        Create a new file ID for the current file, record the new
+        file ID in the fileid mapping, and add this subtoken to a new
+        file-specific dictionary associated with that file ID.  You will
+        see this option only for files which have neither an embedded ID nor
+        an entry in the fileid mapping, and only if the ``--relative-to``
+	option is given.  See `Creating File IDs`_ for details.
 
     add to (n)atural language dictionary
         Add this subtoken to the natural language dictionary.
@@ -138,12 +145,18 @@ Spell-checking Options
 Creating File IDs
 -----------------
 
-If you would like **scspell** to be able to uniquely identify a file, thus
-enabling the creation of a file-specific dictionary, then you must insert a
-unique ID somewhere in the contents of that file. **scspell** will scan each
-file for a string of the following form::
+If you would like **scspell** to be able to uniquely identify a file,
+thus enabling the creation of a file-specific dictionary, then
+**scspell** must be able to find a file ID to identify both the file
+an the file-specific dictionary.  There are two ways **scspell** can
+find the file ID:
 
-    scspell-id: <unique ID>
+1. The file ID may be embedded directly in the file, using a string of
+   the following form::
+
+      scspell-id: <unique ID>
+
+2. An entry in the fileid mapping file ties a filename to a file ID.
 
 The unique ID must consist only of letters, numbers, underscores, and dashes.
 **scspell** can generate suitable unique ID strings using the ``--gen-id`` option::
@@ -152,6 +165,44 @@ The unique ID must consist only of letters, numbers, underscores, and dashes.
     scspell-id: e497803c-523a-11de-ae42-0017f2ee0f37
 
 (Most likely you will want to place a file's unique ID inside a source code comment.)
+
+During interactive use, the ``(a)dd to dictionary`` -> ``add to (N)ew
+file-specific dictionary`` option will create a new File ID for the
+current file, and add it to the fileid mapping file.
+
+
+--relative-to RELATIVE_TO\ 
+ The filenames stored in the fileid mapping are relative paths.  This
+ option specifies what they're relative to.  If this option is not
+ specified, the fileid mapping will not be consulted, and the ``add to (N)ew
+ file-specific dictionary`` option will not be offered.
+
+
+
+Managing File IDs
+-----------------
+
+These options direct **scspell** to manipulate the fileid mapping.
+(These can all be accomplished by editing the fileid mapping
+manually).  These have no effect on File IDs embedded in files.
+
+--rename-file FROMFILE TOFILE
+   Changes the filename that a File ID maps to.  After renaming a file
+   that has a file-specific dictionary and an entry in the fileid
+   mapping, you can use this option to have the entry "follow" the file.
+
+--delete-files\ 
+   Remove filenames from the fileid mapping.  If it was the only
+   filename for a given File ID, removes the File ID from the mapping and
+   its wordlist from the dictionary.
+
+--merge-fileids FROMID TOID
+  Combines the file-specific dictionaries referenced by the two File
+  IDs.  All words from FROMID's list are moved to TOID's.  The FROMID
+  File ID is removed from the mapping, and any files using it are
+  changed to use TOID.  Either FROMID or TOID may be given as a filename
+  instead, in which case that file's File ID is used for that parameter.
+
 
 Sharing a Dictionary
 --------------------
