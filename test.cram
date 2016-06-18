@@ -26,3 +26,27 @@ Test file with --override-dictionary and a fileid mapping entry
     tests/fileidmap/inputfile.txt:3: 'soem' not found in dictionary (from token 'soem')
     tests/fileidmap/inputfile2.txt:4: 'soem' not found in dictionary (from token 'soem')
     [1]
+
+Test fileid manipulations
+
+    $ $SCSPELL --override-dictionary tests/fileidmap/dictionary \
+    > --relative-to tests/fileidmap \
+    > tests/fileidmap/mix*
+    $ $SCSPELL --override-dictionary tests/fileidmap/dictionary \
+    > --relative-to tests/fileidmap \
+    > --merge-fileids tests/fileidmap/mix4.txt tests/fileidmap/mix1.txt
+    $ mv tests/fileidmap/mix2.txt tests/fileidmap/mix22.txt
+    $ $SCSPELL --override-dictionary tests/fileidmap/dictionary \
+    > --relative-to tests/fileidmap \
+    > --rename-file tests/fileidmap/mix2.txt tests/fileidmap/mix22.txt
+    Switching fileid d5641cfe-3574-11e6-a3a6-10ddb1d4c3d5 from mix2.txt to mix22.txt
+    $ $SCSPELL --override-dictionary tests/fileidmap/dictionary \
+    > --relative-to tests/fileidmap \
+    > --delete-file tests/fileidmap/mix5.txt
+    Removing tests/fileidmap/mix5.txt <-> 7f72eb84-3576-11e6-a3a6-10ddb1d4c3d5 mappings
+    $ diff tests/fileidmap/dictionary tests/fileidmap/dictionary.post
+Python 3.4 and 3.5's json.dump() no longer includes a trailing space
+on some lines.  Tell diff to ignore that.
+    $ diff --ignore-trailing-space \
+    >           tests/fileidmap/dictionary.fileids.json \
+    >           tests/fileidmap/dictionary.fileids.json.post
