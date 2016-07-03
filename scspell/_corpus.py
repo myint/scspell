@@ -367,7 +367,6 @@ class CorporaFile(object):
 
     def _make_relative_filename(self, fq_filename):
         """return fq_filename relative to self._relative_to"""
-        rt_len = len(self._relative_to)
         if not fq_filename.startswith(self._relative_to):
             raise SystemExit("Processing file {0} not within --relative-to {1}".
                              format(fq_filename, self._relative_to))
