@@ -47,6 +47,5 @@ Test fileid manipulations
     $ diff tests/fileidmap/dictionary tests/fileidmap/dictionary.post
 Python 3.4 and 3.5's json.dump() no longer includes a trailing space
 on some lines.  Tell diff to ignore that.
-    $ diff --ignore-trailing-space \
-    >           tests/fileidmap/dictionary.fileids.json \
+    $ diff      tests/fileidmap/dictionary.fileids.json \
     >           tests/fileidmap/dictionary.fileids.json.post
