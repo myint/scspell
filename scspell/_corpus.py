@@ -603,7 +603,8 @@ class CorporaFile(object):
             try:
                 with io.open(mapping_file, mode='w', encoding='utf-8') as mf:
                     # http://stackoverflow.com/questions/36003023/json-dump-failing-with-must-be-unicode-not-str-typeerror
-                    tstr = json.dumps(od, ensure_ascii=False, indent=2)
+                    tstr = json.dumps(od, ensure_ascii=False,
+                                      indent=2, separators=(',', ': '))
                     if isinstance(tstr, str):
                         # Apply py2 workaround only on py2
                         if sys.version_info[0] == 2:
