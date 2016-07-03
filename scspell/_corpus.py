@@ -247,7 +247,8 @@ class CorporaFile(object):
                 try:
                     self._fileid_mapping = json.load(mf)
                     _util.mutter(_util.VERBOSITY_DEBUG,
-                                 "got fileid mapping:\n{0}".format(self._fileid_mapping))
+                                 "got fileid mapping:\n{0}"
+                                 .format(self._fileid_mapping))
                 except ValueError as e:
                     # Error during file creation might leave an empty file
                     # here.  Not necessarily fatal, but report it.
@@ -265,10 +266,9 @@ class CorporaFile(object):
                         mapping_file, e.errno, e.strerror))
 
         # Build reverse map
-        for k,v in self._fileid_mapping.items():
+        for k, v in self._fileid_mapping.items():
             for f in v:
                 self._revfileid_mapping[f] = k
-
 
     def match(self, token, filename, file_id):
         """Return True if the token matches any of the applicable corpora.
@@ -368,7 +368,7 @@ class CorporaFile(object):
     def _make_relative_filename(self, fq_filename):
         """return fq_filename relative to self._relative_to"""
         if not fq_filename.startswith(self._relative_to):
-            raise SystemExit("Processing file {0} not within --relative-to {1}".
+            raise SystemExit("File {0} not within --relative-to {1}".
                              format(fq_filename, self._relative_to))
         rfn = fq_filename[len(self._relative_to):]
 
@@ -503,7 +503,7 @@ class CorporaFile(object):
         if from_rel not in self._revfileid_mapping:
             _util.mutter(_util.VERBOSITY_NORMAL,
                          "No fileid for " + rename_from)
-            return;
+            return
 
         if to_rel in self._revfileid_mapping:
             self.delete_file(to_rel)

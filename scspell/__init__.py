@@ -182,6 +182,7 @@ def make_unique(items):
         return False
     return [i for i in items if first_occurrence(i)]
 
+
 def get_new_fileid():
     """Produce a new fileid string."""
     return str(uuid.uuid1())
@@ -273,6 +274,7 @@ def handle_new_extension(ext, dicts):
             dicts.register_extension(ext, filetypes[selection])
             return True
 
+
 def build_add_prompt(offer_p, offer_f, offer_N):
     """Build a prompt for adding a word to a dictionary
 
@@ -357,7 +359,7 @@ def handle_add(unmatched_subtokens, filename, fq_filename, file_id_ref, dicts):
                       file=sys.stderr)
                 dicts.new_file_and_fileid(fq_filename, file_id)
                 dicts.add_by_fileid(subtoken, file_id)
-                prompt = None # reselect prompt now that file_id is not None
+                prompt = None  # reselect prompt now that file_id is not None
                 break
     return True
 
@@ -538,7 +540,7 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
     else:
         file_id = dicts.fileid_of_file(fq_filename)
 
-    file_id_ref = [file_id] # allow for spell_check to update file_id
+    file_id_ref = [file_id]  # allow for spell_check() creating a file_id
 
     if c_escapes:
         token_regex = C_ESCAPE_TOKEN_REGEX
@@ -671,6 +673,7 @@ def find_dict_file(override_dictionary):
 
     return os.path.expandvars(os.path.expanduser(dict_file))
 
+
 def spell_check(source_filenames, override_dictionary=None,
                 relative_to=None, report_only=False, c_escapes=True):
     """Run the interactive spell checker on the set of source_filenames.
@@ -691,6 +694,7 @@ def spell_check(source_filenames, override_dictionary=None,
                 okay = False
     return okay
 
+
 def merge_fileids(merge_from, merge_to,
                   override_dictionary=None, relative_to=None):
     """Merge the fileids specified by merge_to and merge_from.
@@ -705,6 +709,7 @@ def merge_fileids(merge_from, merge_to,
     with CorporaFile(dict_file, relative_to) as dicts:
         dicts.merge_fileids(merge_from, merge_to)
 
+
 def rename_file(rename_from, rename_to,
                 override_dictionary=None, relative_to=None):
     """Rename the file rename_from to rename_to, wrt. the fileid mappings."""
@@ -713,8 +718,9 @@ def rename_file(rename_from, rename_to,
     with CorporaFile(dict_file, relative_to) as dicts:
         dicts.rename_file(rename_from, rename_to)
 
+
 def delete_files(delete_files,
-                override_dictionary=None, relative_to=None):
+                 override_dictionary=None, relative_to=None):
     """Remove all trace of delete_file."""
     dict_file = find_dict_file(override_dictionary)
     with CorporaFile(dict_file, relative_to) as dicts:

@@ -80,8 +80,8 @@ def main():
         be modified to reference TOFILE instead.""")
     dictgroup.add_argument(
         '--delete-files', action='store_true', default=False,
-        help=
-        """inform scspell that the listed files have been deleted.  All fileid
+        help="""
+        inform scspell that the listed files have been deleted.  All fileid
         mappings for the files will be removed.  If all uses of that
         fileid have been removed, the corresponding file-private
         dictionary will be removed.  This will not spell check the
