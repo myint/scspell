@@ -45,7 +45,5 @@ Test fileid manipulations
     > --delete-file tests/fileidmap/mix5.txt
     Removing tests/fileidmap/mix5.txt <-> 7f72eb84-3576-11e6-a3a6-10ddb1d4c3d5 mappings
     $ diff tests/fileidmap/dictionary tests/fileidmap/dictionary.post
-Python 3.4 and 3.5's json.dump() no longer includes a trailing space
-on some lines.  Tell diff to ignore that.
     $ diff      tests/fileidmap/dictionary.fileids.json \
     >           tests/fileidmap/dictionary.fileids.json.post
