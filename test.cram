@@ -34,7 +34,7 @@ Test file ID manipulations
     >     tests/fileidmap/mix*
     $ $SCSPELL --override-dictionary tests/fileidmap/dictionary \
     >     --relative-to tests/fileidmap \
-    >     --merge-fileids tests/fileidmap/mix4.txt tests/fileidmap/mix1.txt
+    >     --merge-file-ids tests/fileidmap/mix4.txt tests/fileidmap/mix1.txt
     $ mv tests/fileidmap/mix2.txt tests/fileidmap/mix22.txt
     $ $SCSPELL --override-dictionary tests/fileidmap/dictionary \
     >     --relative-to tests/fileidmap \
