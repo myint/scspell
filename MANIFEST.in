@@ -4,3 +4,5 @@ global-exclude __pycache__ *.pyc
 exclude Makefile
 exclude test.cram
 exclude tox.ini
+exclude tests
+recursive-exclude tests *
