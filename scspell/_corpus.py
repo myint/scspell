@@ -425,7 +425,7 @@ class CorporaFile(object):
             return True
         return False
 
-    def merge_fileids(self, merge_from, merge_to):
+    def merge_file_ids(self, merge_from, merge_to):
         if self.fileid_exists(merge_to):
             id_to = merge_to
         else:

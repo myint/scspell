@@ -63,7 +63,7 @@ def main():
         '-i', '--gen-id', dest='gen_id', action='store_true',
         help='generate a unique file-id string')
     dict_group.add_argument(
-        '--merge-fileids', nargs=2,
+        '--merge-file-ids', nargs=2,
         metavar=('FROM_ID', 'TO_ID'),
         help='merge these two file IDs, keeping TO_ID and discarding FROM_ID; '
              'combine their word lists in the dictionary, and the filenames '
@@ -108,9 +108,9 @@ def main():
         scspell.export_dictionary(args.export_filename)
         print("Exported dictionary to '{}'".format(args.export_filename),
               file=sys.stderr)
-    elif args.merge_fileids is not None:
-        scspell.merge_fileids(args.merge_fileids[0], args.merge_fileids[1],
-                              args.override_filename, args.relative_to)
+    elif args.merge_file_ids is not None:
+        scspell.merge_file_ids(args.merge_file_ids[0], args.merge_file_ids[1],
+                               args.override_filename, args.relative_to)
     elif args.rename_file is not None:
         scspell.rename_file(args.rename_file[0], args.rename_file[1],
                             args.override_filename, args.relative_to)
