@@ -31,61 +31,60 @@ import scspell
 def main():
     parser = argparse.ArgumentParser(description=__doc__, prog='scspell')
 
-    dictgroup = parser.add_argument_group("dictionary file management")
-    spellgroup = parser.add_argument_group("spellcheck control")
+    dict_group = parser.add_argument_group("dictionary file management")
+    spell_group = parser.add_argument_group("spell-check control")
 
-    spellgroup.add_argument(
+    spell_group.add_argument(
         '--report-only', dest='report', action='store_true',
         help='non-interactive report of spelling errors')
-    spellgroup.add_argument(
+    spell_group.add_argument(
         '--no-c-escapes', dest='c_escapes',
         action='store_false', default=True,
         help="treat \\label as label, for e.g. LaTeX")
 
-    dictgroup.add_argument(
+    dict_group.add_argument(
         '--override-dictionary', dest='override_filename',
         help='set location of dictionary to FILE, for current session only',
         metavar='FILE', action='store')
-    dictgroup.add_argument(
+    dict_group.add_argument(
         '--set-dictionary', dest='dictionary',
         help='permanently set location of dictionary to FILE', metavar='FILE',
         action='store')
-    dictgroup.add_argument(
+    dict_group.add_argument(
         '--export-dictionary', dest='export_filename',
         help='export current dictionary to FILE', metavar='FILE',
         action='store')
-    dictgroup.add_argument(
+    dict_group.add_argument(
         '--relative-to', dest='relative_to',
-        help='Use file paths relative to here in fileid map.  '
-        'This is required to enable use of the fileid map',
+        help='use file paths relative to here in file ID map; '
+             'this is required to enable use of the fileid map',
         action='store')
-    dictgroup.add_argument(
+    dict_group.add_argument(
         '-i', '--gen-id', dest='gen_id', action='store_true',
         help='generate a unique file-id string')
-    dictgroup.add_argument(
+    dict_group.add_argument(
         '--merge-fileids', nargs=2,
-        metavar=('FROMID', 'TOID'),
-        help="""merge these two fileids, keeping TOID and discarding FROMID.
-        Combine their wordlists in the dictionary, and the filenames
-        associated with them in the fileid map.  TOID and FROMID may
-        be given as fileids, or as filenames in which case the fileids
-        corresponding to those files are operated on.  Does NOT look
-        for or consider any fileids embedded in to-be-spellchecked
-        files.  If your filenames look like fileids, do it by hand.""")
-    dictgroup.add_argument(
+        metavar=('FROM_ID', 'TO_ID'),
+        help='merge these two file IDs, keeping TO_ID and discarding FROM_ID; '
+             'combine their word lists in the dictionary, and the filenames '
+             'associated with them in the fileid map; TO_ID and FROM_ID may '
+             'be given as fileids, or as filenames in which case the fileids '
+             'corresponding to those files are operated on; does NOT look '
+             'for or consider any fileids embedded in to-be-spell-checked '
+             'files; if your filenames look like fileids, do it by hand')
+    dict_group.add_argument(
         '--rename-file', nargs=2,
-        metavar=('FROMFILE', 'TOFILE'),
-        help="""inform scspell that FROMFILE has been renamed TOFILE.
-        If an entry in the fileid mapping references FROMFILE, it will
-        be modified to reference TOFILE instead.""")
-    dictgroup.add_argument(
+        metavar=('FROM_FILE', 'TO_FILE'),
+        help='inform scspell that FROM_FILE has been renamed TO_FILE; '
+             'if an entry in the fileid mapping references FROM_FILE, it will '
+             'be modified to reference TO_FILE instead')
+    dict_group.add_argument(
         '--delete-files', action='store_true', default=False,
-        help="""
-        inform scspell that the listed files have been deleted.  All fileid
-        mappings for the files will be removed.  If all uses of that
-        fileid have been removed, the corresponding file-private
-        dictionary will be removed.  This will not spell check the
-        files.""")
+        help='inform scspell that the listed files have been deleted; all '
+             'fileid mappings for the files will be removed; if all uses of '
+             'that fileid have been removed, the corresponding file-private '
+             'dictionary will be removed; this will not spell check the '
+             'files')
 
     parser.add_argument(
         '-D', '--debug', dest='debug', action='store_true',

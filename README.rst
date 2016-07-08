@@ -186,21 +186,21 @@ These options direct **scspell** to manipulate the fileid mapping.
 (These can all be accomplished by editing the fileid mapping
 manually).  These have no effect on File IDs embedded in files.
 
---rename-file FROMFILE TOFILE
+--rename-file FROM_FILE TO_FILE
    Changes the filename that a File ID maps to.  After renaming a file
    that has a file-specific dictionary and an entry in the fileid
    mapping, you can use this option to have the entry "follow" the file.
 
 --delete-files\ 
-   Remove filenames from the fileid mapping.  If it was the only
+   Remove filenames from the file ID mapping.  If it was the only
    filename for a given File ID, removes the File ID from the mapping and
    its wordlist from the dictionary.
 
---merge-fileids FROMID TOID
+--merge-file-ids FROM_ID TO_ID
   Combines the file-specific dictionaries referenced by the two File
-  IDs.  All words from FROMID's list are moved to TOID's.  The FROMID
+  IDs.  All words from FROM_IDs list are moved to TO_IDs.  The FROM_ID
   File ID is removed from the mapping, and any files using it are
-  changed to use TOID.  Either FROMID or TOID may be given as a filename
+  changed to use TO_ID.  Either FROM_ID or TO_ID may be given as a filename
   instead, in which case that file's File ID is used for that parameter.
 
 
