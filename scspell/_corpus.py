@@ -360,7 +360,7 @@ class CorporaFile(object):
                 newtokens.append(t)
         self._natural_dict._tokens = newtokens
 
-        for ext in self._extensions.keys():
+        for ext in self._extensions:
             # Generate a fake file name to use to query the base dicts.
             # Since we aren't using MATCH_FILEID, the basename won't be
             # used, only the extension.
