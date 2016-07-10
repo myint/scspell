@@ -1,0 +1,11 @@
+{
+  "a5ba480a-46bf-11e6-907f-843835579daa": [
+    "scspell/__init__.py"
+  ],
+  "3dadcb18-46c1-11e6-907f-843835579daa": [
+    "scspell/_corpus.py"
+  ],
+  "8bfe4130-46c1-11e6-907f-843835579daa": [
+    "scspell/_portable.py"
+  ]
+}

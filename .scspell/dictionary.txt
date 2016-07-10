@@ -1,6 +1,9 @@
 FILETYPE: Python; .py
 argparse
+configparser
 nargs
+pgen
+strerror
 
 FILEID: e497803c-523a-11de-ae42-0017f2ee0f37
 amma
@@ -15,9 +18,45 @@ ontext
 rogramming
 varaible
 
+FILEID: a5ba480a-46bf-11e6-907f-843835579daa
+atural
+eplace
+gnore
+matchobj
+ntext
+ontext
+rogramming
+
+FILEID: 3dadcb18-46c1-11e6-907f-843835579daa
+copiedids
+fakefn
+fnfrom
+fnto
+fqfilename
+fromasfqfn
+fromcorpus
+fromfiles
+newtokens
+relfilename
+relfn
+reptstring
+revfileid
+sortedfilenames
+toasfqfn
+tocorpus
+tofiles
+tstr
+typeerror
+
+FILEID: 8bfe4130-46c1-11e6-907f-843835579daa
+appdata
+progname
+
 NATURAL:
 american
 english
+fileid
+fileids
 github
 https
 myint
@@ -25,8 +64,12 @@ pelzl
 printf
 scspell
 sourceforge
+stackoverflow
 stderr
 sudo
+tokenize
 travis
 wordlist
+wordlists
+workaround
 
