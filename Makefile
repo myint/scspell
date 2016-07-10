@@ -3,4 +3,6 @@ check:
 	pycodestyle scspell.py scspell setup.py
 	check-manifest
 	rstcheck README.rst
-	scspell scspell.py setup.py
+	./scspell.py --use-builtin-base-dict \
+	    --override-dictionary .scspell/dictionary.txt \
+	    scspell.py setup.py README.rst
