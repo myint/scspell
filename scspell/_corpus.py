@@ -185,6 +185,10 @@ class PrefixMatchCorpus(Corpus):
         f.write('\n')
         self._mark_clean()
 
+MATCH_NATURAL = 0x1
+MATCH_FILETYPE = 0x2
+MATCH_FILEID = 0x4
+
 
 class CorporaFile(object):
 
@@ -192,13 +196,21 @@ class CorporaFile(object):
 
     May include filename<->fileid mapping file too."""
 
-    def __init__(self, filename, relative_to):
+    def __init__(self, filename, base_dicts, relative_to):
         """Construct an instance from the file with the given filename.
+
+        If there are any base_dicts, load them for checking against,
+        but don't modify them or write them out.
 
         relative_to is the directory to consider paths relative to wrt
         the fileid mapping.
 
         """
+        self._base_corpora_files = []
+        for fn in base_dicts:
+            self._base_corpora_files.append(
+                CorporaFile(fn, [], relative_to))
+
         self._filename = filename
 
         # Empty defaults
@@ -270,35 +282,42 @@ class CorporaFile(object):
             for f in v:
                 self._revfileid_mapping[f] = k
 
-    def match(self, token, filename, file_id):
+    def match(self, token, filename, file_id,
+              match_in=MATCH_NATURAL | MATCH_FILETYPE | MATCH_FILEID):
         """Return True if the token matches any of the applicable corpora.
 
         :param token: string being matched
         :param filename: name of file containing token
         :param file_id: unique identifier for current file
         :type  file_id: string or None
+        :param match_in: Limit the corpora we search
         :returns: True if token matches a dictionary
 
         """
-        if self._natural_dict.match(token):
+        for bc in self._base_corpora_files:
+            if bc.match(token, filename, file_id, match_in):
+                return True
+
+        if match_in & MATCH_NATURAL and self._natural_dict.match(token):
             return True
 
-        (_, ext) = os.path.splitext(filename.lower())
-        try:
-            corpus = self._extensions[ext]
-            _util.mutter(
-                _util.VERBOSITY_DEBUG,
-                '(Matching against filetype "%s".)' %
-                corpus.get_name())
-            if corpus.match(token):
-                return True
-        except KeyError:
-            _util.mutter(
-                _util.VERBOSITY_DEBUG,
-                '(No filetype match for extension "%s".)' %
-                ext)
+        if match_in & MATCH_FILETYPE:
+            (_, ext) = os.path.splitext(filename.lower())
+            try:
+                corpus = self._extensions[ext]
+                _util.mutter(
+                    _util.VERBOSITY_DEBUG,
+                    '(Matching against filetype "%s".)' %
+                    corpus.get_name())
+                if corpus.match(token):
+                    return True
+            except KeyError:
+                _util.mutter(
+                    _util.VERBOSITY_DEBUG,
+                    '(No filetype match for extension "%s".)' %
+                    ext)
 
-        if file_id is not None:
+        if match_in & MATCH_FILEID and file_id is not None:
             try:
                 corpus = self._fileids[file_id]
                 _util.mutter(
@@ -314,6 +333,47 @@ class CorporaFile(object):
                     file_id)
 
         return False
+
+    def token_is_in_base_dict(self, token, filename, fileid,
+                              match_in=MATCH_NATURAL | MATCH_FILETYPE |
+                              MATCH_FILEID):
+        for bc in self._base_corpora_files:
+            if bc.match(token, filename, fileid, match_in):
+                return True
+
+    def filter_out_base_dicts(self):
+        # For each of our corpora, for each word, if that word is in a
+        # base dict, remove it from the corpora.
+        #
+        # Only remove it when the base dict match was at least as
+        # general as the corpora we're processing.  E.g., only remove
+        # from our natural_dict when the word was in the natural_dict
+        # of some base_dict; not if it was in a filetype or fileid dict.
+        # Similarly, only remove from our filetype dict if the word was
+        # in a natural_dict or the filetype dict with the same extension.
+        newtokens = []
+        for t in self._natural_dict._tokens:
+            if self.token_is_in_base_dict(t, None, None, MATCH_NATURAL):
+                # Going to change the dict, so mark it dirty
+                self._natural_dict._mark_dirty()
+            else:
+                newtokens.append(t)
+        self._natural_dict._tokens = newtokens
+
+        for ext in self._extensions:
+            # Generate a fake file name to use to query the base dicts.
+            # Since we aren't using MATCH_FILEID, the basename won't be
+            # used, only the extension.
+            fakefn = "fake." + ext
+            file_type_corp = self._extensions[ext]
+            newtokens = []
+            for t in file_type_corp._tokens:
+                if self.token_is_in_base_dict(t, fakefn, None,
+                                              MATCH_NATURAL | MATCH_FILETYPE):
+                    file_type_corp._mark_dirty()
+                else:
+                    newtokens.append(t)
+            file_type_corp._tokens = newtokens
 
     def add_natural(self, token):
         """Add the token to the natural language corpus."""
@@ -554,8 +614,7 @@ class CorporaFile(object):
                 return
         raise AssertionError('type_descr "%s" not present.' % type_descr)
 
-    def close(self):
-        """Update the corpus file iff the contents were modified."""
+    def is_dirty(self):
         dirty = (
             self._natural_dict.is_dirty() if self._natural_dict is not None
             else False
@@ -565,7 +624,11 @@ class CorporaFile(object):
         for corpus in self._fileid_dicts:
             dirty = dirty or corpus.is_dirty()
         dirty = dirty or self._fileid_mapping_is_dirty
-        if dirty:
+        return dirty
+
+    def close(self):
+        """Update the corpus file iff the contents were modified."""
+        if self.is_dirty():
             try:
                 with _util.open_with_encoding(self._filename, mode='w') as f:
                     for corpus in self._filetype_dicts:
@@ -613,6 +676,16 @@ class CorporaFile(object):
             except IOError as e:
                 print("Warning: unable to write fileid mapping file '{0}' "
                       "(reason: {1})".format(mapping_file, e))
+
+        # Since we add words only to this, not to any base corpora
+        # file, there's nothing to do for the base files now.  But it
+        # seems like good form to call close() on them since we've
+        # "opened" them.  But be sure we won't actually end up writing
+        # any changes out.
+        for bc in self._base_corpora_files:
+            if bc.is_dirty():
+                raise AssertionError("_base_corpora_file is dirty")
+            bc.close()
 
     def _parse(self, lines):
         """Parse the lines into a set of corpora."""

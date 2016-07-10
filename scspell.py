@@ -55,6 +55,19 @@ def main():
         help='export current dictionary to FILE', metavar='FILE',
         action='store')
     dict_group.add_argument(
+        '--base-dict', dest='base_dicts', action='append', default=[],
+        metavar='BASE_DICT',
+        help="Match words from BASE_DICT, but don't modify it.")
+    dict_group.add_argument(
+        '--use-builtin-base-dict', dest='base_dicts',
+        action='append_const', const=scspell.SCSPELL_BUILTIN_DICT,
+        help="Use scspell's default wordlist as a base dictionary ({0})"
+        .format(scspell.SCSPELL_BUILTIN_DICT))
+    dict_group.add_argument(
+        '--filter-out-base-dicts', action='store_true',
+        help='Remove from the dictionary file '
+             'all the words from the basedicts')
+    dict_group.add_argument(
         '--relative-to', dest='relative_to',
         help='use file paths relative to here in file ID map; '
              'this is required to enable use of the fileid map',
@@ -105,25 +118,31 @@ def main():
     elif args.dictionary is not None:
         scspell.set_dictionary(args.dictionary)
     elif args.export_filename is not None:
-        scspell.export_dictionary(args.export_filename)
+        scspell.export_dictionary(args.export_filename, args.base_dicts)
         print("Exported dictionary to '{}'".format(args.export_filename),
               file=sys.stderr)
     elif args.merge_file_ids is not None:
         scspell.merge_file_ids(args.merge_file_ids[0], args.merge_file_ids[1],
-                               args.override_filename, args.relative_to)
+                               args.override_filename,
+                               args.base_dicts, args.relative_to)
     elif args.rename_file is not None:
         scspell.rename_file(args.rename_file[0], args.rename_file[1],
-                            args.override_filename, args.relative_to)
+                            args.override_filename,
+                            args.base_dicts, args.relative_to)
     elif args.delete_files:
         if len(args.files) < 1:
             parser.error('No files specified for delete')
         scspell.delete_files(args.files,
-                             args.override_filename, args.relative_to)
+                             args.override_filename,
+                             args.base_dicts, args.relative_to)
+    elif args.filter_out_base_dicts:
+        scspell.filter_out_base_dicts(args.override_filename, args.base_dicts)
     elif len(args.files) < 1:
         parser.error('No files specified')
     else:
         okay = scspell.spell_check(args.files,
                                    args.override_filename,
+                                   args.base_dicts,
                                    args.relative_to,
                                    args.report,
                                    args.c_escapes)

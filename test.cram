@@ -47,3 +47,40 @@ Test file ID manipulations
     $ diff tests/fileidmap/dictionary tests/fileidmap/dictionary.post
     $ diff tests/fileidmap/dictionary.fileids.json \
     >      tests/fileidmap/dictionary.fileids.json.post
+
+Base dicts tests
+
+    $ T=tests/basedicts
+
+With all the dictionaries, clean run:
+
+    $ $SCSPELL --override-dictionary $T/dictionary \
+    >     --use-builtin-base-dict \
+    >     --base-dict $T/base-dictionary-1 --base-dict $T/base-dictionary-2 \
+    >     $T/testfile
+
+Leave out everything but the override dictionary
+
+    $ $SCSPELL --override-dictionary $T/dictionary $T/testfile
+    tests/basedicts/testfile:1: 'hoth' not found in dictionary (from token 'hoth')
+    tests/basedicts/testfile:1: 'apple' not found in dictionary (from token 'apple')
+    tests/basedicts/testfile:1: 'bakingsoda' not found in dictionary (from token 'bakingsoda')
+    tests/basedicts/testfile:2: 'perfectly' not found in dictionary (from token 'perfectly')
+    tests/basedicts/testfile:3: 'also' not found in dictionary (from token 'also')
+    tests/basedicts/testfile:3: 'yavin' not found in dictionary (from token 'yavin')
+    [1]
+
+Add in just the first base dict
+
+    $ $SCSPELL --override-dictionary $T/dictionary \
+    >     --base-dict $T/base-dictionary-1 $T/testfile
+    tests/basedicts/testfile:1: 'apple' not found in dictionary (from token 'apple')
+    tests/basedicts/testfile:1: 'bakingsoda' not found in dictionary (from token 'bakingsoda')
+    tests/basedicts/testfile:2: 'perfectly' not found in dictionary (from token 'perfectly')
+    tests/basedicts/testfile:3: 'also' not found in dictionary (from token 'also')
+    [1]
+
+Filter out builtin-base-dict from base-dictionary-2
+    $ $SCSPELL --override-dictionary $T/base-dictionary-2 \
+    >     --use-builtin-base-dict --filter-out-base-dicts
+    $ diff -u $T/base-dictionary-2 $T/base-dictionary-2.filtered

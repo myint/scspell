@@ -60,8 +60,16 @@ def open_with_encoding(filename, encoding=None, mode='r'):
 
 def detect_encoding(filename):
     """Return file encoding."""
+
     try:
-        with open(filename, 'rb') as input_file:
+        input_file = open(filename, 'rb')
+    except (IOError, OSError):
+        # If the file doesn't exist, return the same thing
+        # detect_encoding gives us for an empty file, utf-8.
+        return 'utf-8'
+
+    try:
+        with input_file:
             from lib2to3.pgen2 import tokenize as lib2to3_tokenize
             encoding = lib2to3_tokenize.detect_encoding(input_file.readline)[0]
 
