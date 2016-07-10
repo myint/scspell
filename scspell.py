@@ -114,7 +114,7 @@ def main():
         scspell.set_verbosity(scspell.VERBOSITY_MAX)
 
     if args.gen_id:
-        print('scspell-id: %s' % scspell.get_new_fileid())
+        print('scspell-id: %s' % scspell.get_new_file_id())
     elif args.dictionary is not None:
         scspell.set_dictionary(args.dictionary)
     elif args.export_filename is not None:
