@@ -66,11 +66,11 @@ def main():
     dict_group.add_argument(
         '--filter-out-base-dicts', action='store_true',
         help='Remove from the dictionary file '
-             'all the words from the basedicts')
+             'all the words from the base dicts')
     dict_group.add_argument(
         '--relative-to', dest='relative_to',
-        help='use file paths relative to here in file ID map; '
-             'this is required to enable use of the fileid map',
+        help='use file paths relative to here in file ID map.  '
+             'This is required to enable use of the file ID map',
         action='store')
     dict_group.add_argument(
         '-i', '--gen-id', dest='gen_id', action='store_true',
@@ -80,22 +80,22 @@ def main():
         metavar=('FROM_ID', 'TO_ID'),
         help='merge these two file IDs, keeping TO_ID and discarding FROM_ID; '
              'combine their word lists in the dictionary, and the filenames '
-             'associated with them in the fileid map; TO_ID and FROM_ID may '
-             'be given as fileids, or as filenames in which case the fileids '
-             'corresponding to those files are operated on; does NOT look '
-             'for or consider any fileids embedded in to-be-spell-checked '
-             'files; if your filenames look like fileids, do it by hand')
+             'associated with them in the file ID map; TO_ID and FROM_ID may '
+             'be given as file IDs, or as filenames in which case the file '
+             'IDs corresponding to those files are operated on; does NOT look '
+             'for or consider any file IDs embedded in to-be-spell-checked '
+             'files; if your filenames look like file IDs, do it by hand')
     dict_group.add_argument(
         '--rename-file', nargs=2,
         metavar=('FROM_FILE', 'TO_FILE'),
         help='inform scspell that FROM_FILE has been renamed TO_FILE; '
-             'if an entry in the fileid mapping references FROM_FILE, it will '
-             'be modified to reference TO_FILE instead')
+             'if an entry in the file ID mapping references FROM_FILE, it '
+             'will be modified to reference TO_FILE instead')
     dict_group.add_argument(
         '--delete-files', action='store_true', default=False,
         help='inform scspell that the listed files have been deleted; all '
-             'fileid mappings for the files will be removed; if all uses of '
-             'that fileid have been removed, the corresponding file-private '
+             'file ID mappings for the files will be removed; if all uses of '
+             'that file ID have been removed, the corresponding file-private '
              'dictionary will be removed; this will not spell check the '
              'files')
 
