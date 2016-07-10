@@ -6,3 +6,5 @@ exclude test.cram
 exclude tox.ini
 exclude tests
 recursive-exclude tests *
+exclude .scspell
+recursive-exclude .scspell *
