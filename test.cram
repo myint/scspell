@@ -39,7 +39,7 @@ Test file ID manipulations
     $ $SCSPELL --override-dictionary tests/fileidmap/dictionary \
     >     --relative-to tests/fileidmap \
     >     --rename-file tests/fileidmap/mix2.txt tests/fileidmap/mix22.txt
-    Switching fileid d5641cfe-3574-11e6-a3a6-10ddb1d4c3d5 from mix2.txt to mix22.txt
+    Switching file ID d5641cfe-3574-11e6-a3a6-10ddb1d4c3d5 from mix2.txt to mix22.txt
     $ $SCSPELL --override-dictionary tests/fileidmap/dictionary \
     >     --relative-to tests/fileidmap \
     >     --delete-file tests/fileidmap/mix5.txt

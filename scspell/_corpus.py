@@ -194,7 +194,7 @@ class CorporaFile(object):
 
     """The CorporaFile manages a single file containing multiple corpora.
 
-    May include filename<->fileid mapping file too."""
+    May include filename<->file ID mapping file too."""
 
     def __init__(self, filename, base_dicts, relative_to):
         """Construct an instance from the file with the given filename.
@@ -203,7 +203,7 @@ class CorporaFile(object):
         but don't modify them or write them out.
 
         relative_to is the directory to consider paths relative to wrt
-        the fileid mapping.
+        the file ID mapping.
 
         """
         self._base_corpora_files = []
@@ -227,10 +227,10 @@ class CorporaFile(object):
             self._relative_to = os.path.normcase(os.path.realpath(relative_to))
         self._fileid_mapping = {}
         self._fileid_mapping_is_dirty = False
-        # mapping of fileid -> list-of-filenames for fileids not stored in the
-        # source files.
+        # mapping of file ID -> list-of-filenames for file IDs not
+        # stored in the source files.
         self._revfileid_mapping = {}
-        # Reverse map of the above, individual filename -> fileid
+        # Reverse map of the above, individual filename -> file ID
 
         try:
             with _util.open_with_encoding(filename, mode='r') as f:
@@ -259,22 +259,22 @@ class CorporaFile(object):
                 try:
                     self._fileid_mapping = json.load(mf)
                     _util.mutter(_util.VERBOSITY_DEBUG,
-                                 "got fileid mapping:\n{0}"
+                                 "got file ID mapping:\n{0}"
                                  .format(self._fileid_mapping))
                 except ValueError as e:
                     # Error during file creation might leave an empty file
                     # here.  Not necessarily fatal, but report it.
                     _util.mutter(_util.VERBOSITY_NORMAL,
-                                 "Couldn't load fileid mapping from {0}: {1}"
+                                 "Couldn't load file ID mapping from {0}: {1}"
                                  .format(mapping_file, e))
         except IOError as e:
             if e.errno == errno.ENOENT:
                 _util.mutter(_util.VERBOSITY_DEBUG,
-                             "No fileid mappings file {0}".format(
+                             "No file ID mappings file {0}".format(
                                  mapping_file))
             else:
                 raise SystemExit(
-                    "Can't read fileid mappings file {0}: {1}: {2}".format(
+                    "Can't read file ID mappings file {0}: {1}: {2}".format(
                         mapping_file, e.errno, e.strerror))
 
         # Build reverse map
@@ -348,7 +348,7 @@ class CorporaFile(object):
         # Only remove it when the base dict match was at least as
         # general as the corpora we're processing.  E.g., only remove
         # from our natural_dict when the word was in the natural_dict
-        # of some base_dict; not if it was in a filetype or fileid dict.
+        # of some base_dict; not if it was in a filetype or file ID dict.
         # Similarly, only remove from our filetype dict if the word was
         # in a natural_dict or the filetype dict with the same extension.
         newtokens = []
@@ -494,7 +494,7 @@ class CorporaFile(object):
                 (toasfqfn, fnto) = self._fn_to_fq_rel(fnto)
             id_to = self.fileid_of_rel_file(fnto)
             if id_to is None:
-                raise SystemExit("Can't find merge_to {0} as fileid or file".
+                raise SystemExit("Can't find merge_to {0} as file ID or file".
                                  format(merge_to))
 
         if self.fileid_exists(merge_from):
@@ -505,8 +505,8 @@ class CorporaFile(object):
                 (fromasfqfn, fnfrom) = self._fn_to_fq_rel(fnfrom)
             id_from = self.fileid_of_rel_file(fnfrom)
             if id_from is None:
-                raise SystemExit("Can't find merge_from {0} as fileid or file".
-                                 format(id_from))
+                raise SystemExit("Can't find merge_from {0} as file ID or file"
+                                 "".format(id_from))
 
         _util.mutter(_util.VERBOSITY_DEBUG,
                      "Going to merge {id_from} into {id_to}".format(
@@ -539,7 +539,7 @@ class CorporaFile(object):
             else:
                 reptstring = "{0} ({1})".format(filename, relfilename)
             _util.mutter(_util.VERBOSITY_NORMAL,
-                         "No fileid for {0}".format(reptstring))
+                         "No file ID for {0}".format(reptstring))
             return
         _util.mutter(_util.VERBOSITY_NORMAL,
                      "Removing {0} <-> {1} mappings".format(
@@ -548,10 +548,10 @@ class CorporaFile(object):
         fns = self._fileid_mapping[id]
         fns.remove(relfilename)
         if len(fns) == 0:
-            # No remaining files use this fileid.  Remove all trace of it.
+            # No remaining files use this file ID.  Remove all trace of it.
             del self._fileid_mapping[id]
 
-            # remove fileid-private dictionary from corpus.
+            # remove file ID-private dictionary from corpus.
             corpus = self._fileids[id]
             self._fileid_dicts.remove(corpus)
             del self._fileids[id]
@@ -562,7 +562,7 @@ class CorporaFile(object):
         (to_fq, to_rel) = self._fn_to_fq_rel(rename_to)
         if from_rel not in self._revfileid_mapping:
             _util.mutter(_util.VERBOSITY_NORMAL,
-                         "No fileid for " + rename_from)
+                         "No file ID for " + rename_from)
             return
 
         if to_rel in self._revfileid_mapping:
@@ -571,7 +571,7 @@ class CorporaFile(object):
         id_from = self._revfileid_mapping[from_rel]
 
         _util.mutter(_util.VERBOSITY_NORMAL,
-                     "Switching fileid {0} from {1} to {2}".format(
+                     "Switching file ID {0} from {1} to {2}".format(
                          id_from, from_rel, to_rel))
 
         fns = self._fileid_mapping[id_from]
@@ -644,7 +644,7 @@ class CorporaFile(object):
 
         if self._fileid_mapping_is_dirty:
             if self._relative_to is None:
-                raise AssertionError("fileid mapping is dirty but " +
+                raise AssertionError("file ID mapping is dirty but " +
                                      "relative_to is None")
 
             # Build an OrderedDict sorted by first filename of id, so the
@@ -674,7 +674,7 @@ class CorporaFile(object):
                     mf.write(tstr)
                 self._fileid_mapping_is_dirty = False
             except IOError as e:
-                print("Warning: unable to write fileid mapping file '{0}' "
+                print("Warning: unable to write file ID mapping file '{0}' "
                       "(reason: {1})".format(mapping_file, e))
 
         # Since we add words only to this, not to any base corpora
