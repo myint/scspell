@@ -664,13 +664,13 @@ class CorporaFile(object):
             try:
                 with io.open(mapping_file, mode='w', encoding='utf-8') as mf:
                     # http://stackoverflow.com/questions/36003023/json-dump-failing-with-must-be-unicode-not-str-typeerror
-                    tstr = json.dumps(od, ensure_ascii=False,
-                                      indent=2, separators=(',', ': '))
-                    if isinstance(tstr, str):
+                    json_str = json.dumps(od, ensure_ascii=False,
+                                          indent=2, separators=(',', ': '))
+                    if isinstance(json_str, str):
                         # Apply py2 workaround only on py2
                         if sys.version_info[0] == 2:
-                            tstr = tstr.decode("utf-8")
-                    mf.write(tstr)
+                            json_str = json_str.decode("utf-8")
+                    mf.write(json_str)
                 self._fileid_mapping_is_dirty = False
             except IOError as e:
                 print("Warning: unable to write file ID mapping file '{0}' "
