@@ -98,15 +98,15 @@ prompted with the following options for every subtoken:
     add to (f)ile-specific dictionary
         Add this subtoken to the dictionary associated with the
         current file. You will see this option only for files which
-        have such an embedded ID or which have an entry in the fileid
+        have such an embedded ID or which have an entry in the file ID
         mapping.  See `Creating File IDs`_ for details.
 
     add to (N)ew file-specific dictionary
         Create a new file ID for the current file, record the new
-        file ID in the fileid mapping, and add this subtoken to a new
+        file ID in the file ID mapping, and add this subtoken to a new
         file-specific dictionary associated with that file ID.  You will
         see this option only for files which have neither an embedded ID nor
-        an entry in the fileid mapping, and only if the ``--relative-to``
+        an entry in the file ID mapping, and only if the ``--relative-to``
 	option is given.  See `Creating File IDs`_ for details.
 
     add to (n)atural language dictionary
@@ -156,7 +156,7 @@ find the file ID:
 
       scspell-id: <unique ID>
 
-2. An entry in the fileid mapping file ties a filename to a file ID.
+2. An entry in the file ID mapping file ties a filename to a file ID.
 
 The unique ID must consist only of letters, numbers, underscores, and dashes.
 **scspell** can generate suitable unique ID strings using the ``--gen-id`` option::
@@ -168,13 +168,13 @@ The unique ID must consist only of letters, numbers, underscores, and dashes.
 
 During interactive use, the ``(a)dd to dictionary`` -> ``add to (N)ew
 file-specific dictionary`` option will create a new File ID for the
-current file, and add it to the fileid mapping file.
+current file, and add it to the file ID mapping file.
 
 
 --relative-to RELATIVE_TO\ 
- The filenames stored in the fileid mapping are relative paths.  This
+ The filenames stored in the file ID mapping are relative paths.  This
  option specifies what they're relative to.  If this option is not
- specified, the fileid mapping will not be consulted, and the ``add to (N)ew
+ specified, the file ID mapping will not be consulted, and the ``add to (N)ew
  file-specific dictionary`` option will not be offered.
 
 
@@ -182,13 +182,13 @@ current file, and add it to the fileid mapping file.
 Managing File IDs
 -----------------
 
-These options direct **scspell** to manipulate the fileid mapping.
-(These can all be accomplished by editing the fileid mapping
-manually).  These have no effect on File IDs embedded in files.
+These options direct **scspell** to manipulate the file ID mapping.
+(These can all be accomplished by editing the file ID mapping
+manually).  These have no effect on file IDs embedded in files.
 
 --rename-file FROM_FILE TO_FILE
    Changes the filename that a File ID maps to.  After renaming a file
-   that has a file-specific dictionary and an entry in the fileid
+   that has a file-specific dictionary and an entry in the file ID
    mapping, you can use this option to have the entry "follow" the file.
 
 --delete-files\ 
