@@ -351,14 +351,14 @@ class CorporaFile(object):
         # of some base_dict; not if it was in a filetype or file ID dict.
         # Similarly, only remove from our filetype dict if the word was
         # in a natural_dict or the filetype dict with the same extension.
-        newtokens = []
+        new_tokens = []
         for t in self._natural_dict._tokens:
             if self.token_is_in_base_dict(t, None, None, MATCH_NATURAL):
                 # Going to change the dict, so mark it dirty
                 self._natural_dict._mark_dirty()
             else:
-                newtokens.append(t)
-        self._natural_dict._tokens = newtokens
+                new_tokens.append(t)
+        self._natural_dict._tokens = new_tokens
 
         for ext in self._extensions:
             # Generate a fake file name to use to query the base dicts.
@@ -366,14 +366,14 @@ class CorporaFile(object):
             # used, only the extension.
             fake_filename = "fake." + ext
             file_type_corp = self._extensions[ext]
-            newtokens = []
+            new_tokens = []
             for t in file_type_corp._tokens:
                 if self.token_is_in_base_dict(t, fake_filename, None,
                                               MATCH_NATURAL | MATCH_FILETYPE):
                     file_type_corp._mark_dirty()
                 else:
-                    newtokens.append(t)
-            file_type_corp._tokens = newtokens
+                    new_tokens.append(t)
+            file_type_corp._tokens = new_tokens
 
     def add_natural(self, token):
         """Add the token to the natural language corpus."""
