@@ -534,11 +534,11 @@ class CorporaFile(object):
             id = self._revfileid_mapping[rel_filename]
         except:
             if filename == rel_filename:
-                reptstring = filename
+                report_str = filename
             else:
-                reptstring = "{0} ({1})".format(filename, rel_filename)
+                report_str = "{0} ({1})".format(filename, rel_filename)
             _util.mutter(_util.VERBOSITY_NORMAL,
-                         "No file ID for {0}".format(reptstring))
+                         "No file ID for {0}".format(report_str))
             return
         _util.mutter(_util.VERBOSITY_NORMAL,
                      "Removing {0} <-> {1} mappings".format(
