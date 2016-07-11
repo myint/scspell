@@ -105,10 +105,10 @@ class MatchDescriptor(object):
     """A MatchDescriptor captures the information necessary to represent a
     token matched within some source code."""
 
-    def __init__(self, text, matchobj):
+    def __init__(self, text, match_obj):
         self._data = text
-        self._pos = matchobj.start()
-        self._token = matchobj.group()
+        self._pos = match_obj.start()
+        self._token = match_obj.group()
         self._context = None
         self._line_num = None
 
