@@ -445,8 +445,8 @@ class CorporaFile(object):
         """Given a filename relative to ".", return the filename
            relative to the --relative-to path"""
         fq_filename = os.path.normcase(os.path.realpath(filename))
-        relfilename = self._make_relative_filename(fq_filename)
-        return relfilename
+        rel_filename = self._make_relative_filename(fq_filename)
+        return rel_filename
 
     def new_file_and_fileid(self, fq_filename, file_id):
         """Add a mapping for this filename and file_id"""
@@ -454,15 +454,15 @@ class CorporaFile(object):
         if self._relative_to is None:
             raise AssertionError("new_file_and_fileid called without "
                                  "--relative-to")
-        relfn = self._make_relative_filename(fq_filename)
-        if relfn in self._revfileid_mapping:
+        rel_filename = self._make_relative_filename(fq_filename)
+        if rel_filename in self._revfileid_mapping:
             raise AssertionError("{0} already has file_id {1}".format(
-                relfn, self._revfileid_mapping[relfn]))
-        self._revfileid_mapping[relfn] = file_id
+                rel_filename, self._revfileid_mapping[rel_filename]))
+        self._revfileid_mapping[rel_filename] = file_id
         if file_id not in self._fileid_mapping:
             self._fileid_mapping[file_id] = []
-        if relfn not in self._fileid_mapping[file_id]:
-            self._fileid_mapping[file_id].append(relfn)
+        if rel_filename not in self._fileid_mapping[file_id]:
+            self._fileid_mapping[file_id].append(rel_filename)
             self._fileid_mapping[file_id] = sorted(
                 self._fileid_mapping[file_id])
             self._fileid_mapping_is_dirty = True
@@ -476,8 +476,8 @@ class CorporaFile(object):
     def fileid_of_file(self, fq_filename):
         if self._relative_to is None:
             return None
-        relfn = self._make_relative_filename(fq_filename)
-        return self.fileid_of_rel_file(relfn)
+        rel_filename = self._make_relative_filename(fq_filename)
+        return self.fileid_of_rel_file(rel_filename)
 
     def fileid_exists(self, file_id):
         if file_id in self._fileid_mapping:
@@ -529,23 +529,23 @@ class CorporaFile(object):
         self._fileid_mapping_is_dirty = True
 
     def delete_file(self, filename):
-        relfilename = self._fn_to_rel(filename)
+        rel_filename = self._fn_to_rel(filename)
         try:
-            id = self._revfileid_mapping[relfilename]
+            id = self._revfileid_mapping[rel_filename]
         except:
-            if filename == relfilename:
+            if filename == rel_filename:
                 reptstring = filename
             else:
-                reptstring = "{0} ({1})".format(filename, relfilename)
+                reptstring = "{0} ({1})".format(filename, rel_filename)
             _util.mutter(_util.VERBOSITY_NORMAL,
                          "No file ID for {0}".format(reptstring))
             return
         _util.mutter(_util.VERBOSITY_NORMAL,
                      "Removing {0} <-> {1} mappings".format(
                          filename, id))
-        del self._revfileid_mapping[relfilename]
+        del self._revfileid_mapping[rel_filename]
         fns = self._fileid_mapping[id]
-        fns.remove(relfilename)
+        fns.remove(rel_filename)
         if len(fns) == 0:
             # No remaining files use this file ID.  Remove all trace of it.
             del self._fileid_mapping[id]
