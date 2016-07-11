@@ -652,13 +652,13 @@ class CorporaFile(object):
             # more stable, so it will result in less churn if it's checked
             # into git.
             od = OrderedDict()
-            copiedids = set({})
+            copied_ids = set({})
             sortedfilenames = sorted(self._revfileid_mapping)
             for fn in sortedfilenames:
                 id = self._revfileid_mapping[fn]
-                if id in copiedids:
+                if id in copied_ids:
                     continue
-                copiedids.add(id)
+                copied_ids.add(id)
                 od[id] = sorted(self._fileid_mapping[id])
 
             mapping_file = self._filename + ".fileids.json"
