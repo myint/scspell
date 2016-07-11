@@ -652,8 +652,8 @@ class CorporaFile(object):
             # into git.
             od = OrderedDict()
             copied_ids = set({})
-            sortedfilenames = sorted(self._reverse_file_id_mapping)
-            for fn in sortedfilenames:
+            sorted_filenames = sorted(self._reverse_file_id_mapping)
+            for fn in sorted_filenames:
                 id = self._reverse_file_id_mapping[fn]
                 if id in copied_ids:
                     continue
