@@ -229,7 +229,7 @@ class CorporaFile(object):
         self._fileid_mapping_is_dirty = False
         # mapping of file ID -> list-of-filenames for file IDs not
         # stored in the source files.
-        self._revfileid_mapping = {}
+        self._reverse_file_id_mapping = {}
         # Reverse map of the above, individual filename -> file ID
 
         try:
@@ -280,7 +280,7 @@ class CorporaFile(object):
         # Build reverse map
         for k, v in self._fileid_mapping.items():
             for f in v:
-                self._revfileid_mapping[f] = k
+                self._reverse_file_id_mapping[f] = k
 
     def match(self, token, filename, file_id,
               match_in=MATCH_NATURAL | MATCH_FILETYPE | MATCH_FILEID):
@@ -455,10 +455,10 @@ class CorporaFile(object):
             raise AssertionError("new_file_and_fileid called without "
                                  "--relative-to")
         rel_filename = self._make_relative_filename(fq_filename)
-        if rel_filename in self._revfileid_mapping:
+        if rel_filename in self._reverse_file_id_mapping:
             raise AssertionError("{0} already has file_id {1}".format(
-                rel_filename, self._revfileid_mapping[rel_filename]))
-        self._revfileid_mapping[rel_filename] = file_id
+                rel_filename, self._reverse_file_id_mapping[rel_filename]))
+        self._reverse_file_id_mapping[rel_filename] = file_id
         if file_id not in self._fileid_mapping:
             self._fileid_mapping[file_id] = []
         if rel_filename not in self._fileid_mapping[file_id]:
@@ -469,7 +469,7 @@ class CorporaFile(object):
 
     def fileid_of_rel_file(self, rel_filename):
         try:
-            return self._revfileid_mapping[rel_filename]
+            return self._reverse_file_id_mapping[rel_filename]
         except:
             return None
 
@@ -524,14 +524,14 @@ class CorporaFile(object):
         to_files = self._fileid_mapping[id_to]
         for f in from_files:
             to_files.append(f)
-            self._revfileid_mapping[f] = id_to
+            self._reverse_file_id_mapping[f] = id_to
         self._fileid_mapping[id_to] = sorted(to_files)
         self._fileid_mapping_is_dirty = True
 
     def delete_file(self, filename):
         rel_filename = self._fn_to_rel(filename)
         try:
-            id = self._revfileid_mapping[rel_filename]
+            id = self._reverse_file_id_mapping[rel_filename]
         except:
             if filename == rel_filename:
                 report_str = filename
@@ -543,7 +543,7 @@ class CorporaFile(object):
         _util.mutter(_util.VERBOSITY_NORMAL,
                      "Removing {0} <-> {1} mappings".format(
                          filename, id))
-        del self._revfileid_mapping[rel_filename]
+        del self._reverse_file_id_mapping[rel_filename]
         fns = self._fileid_mapping[id]
         fns.remove(rel_filename)
         if len(fns) == 0:
@@ -559,15 +559,15 @@ class CorporaFile(object):
     def rename_file(self, rename_from, rename_to):
         from_rel = self._fn_to_rel(rename_from)
         to_rel = self._fn_to_rel(rename_to)
-        if from_rel not in self._revfileid_mapping:
+        if from_rel not in self._reverse_file_id_mapping:
             _util.mutter(_util.VERBOSITY_NORMAL,
                          "No file ID for " + rename_from)
             return
 
-        if to_rel in self._revfileid_mapping:
+        if to_rel in self._reverse_file_id_mapping:
             self.delete_file(to_rel)
 
-        id_from = self._revfileid_mapping[from_rel]
+        id_from = self._reverse_file_id_mapping[from_rel]
 
         _util.mutter(_util.VERBOSITY_NORMAL,
                      "Switching file ID {0} from {1} to {2}".format(
@@ -578,8 +578,8 @@ class CorporaFile(object):
         fns.append(to_rel)
         self._fileid_mapping[id_from] = sorted(fns)
 
-        self._revfileid_mapping[to_rel] = id_from
-        del self._revfileid_mapping[from_rel]
+        self._reverse_file_id_mapping[to_rel] = id_from
+        del self._reverse_file_id_mapping[from_rel]
         self._fileid_mapping_is_dirty = True
 
     def get_filetypes(self):
@@ -652,9 +652,9 @@ class CorporaFile(object):
             # into git.
             od = OrderedDict()
             copied_ids = set({})
-            sortedfilenames = sorted(self._revfileid_mapping)
+            sortedfilenames = sorted(self._reverse_file_id_mapping)
             for fn in sortedfilenames:
-                id = self._revfileid_mapping[fn]
+                id = self._reverse_file_id_mapping[fn]
                 if id in copied_ids:
                     continue
                 copied_ids.add(id)
