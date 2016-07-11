@@ -512,12 +512,12 @@ class CorporaFile(object):
                          id_from=id_from, id_to=id_to))
 
         # merge wordlists
-        fromcorpus = self._fileids[id_from]
-        tocorpus = self._fileids[id_to]
-        for t in fromcorpus._tokens:
-            tocorpus.add(t)
+        from_corpus = self._fileids[id_from]
+        to_corpus = self._fileids[id_to]
+        for t in from_corpus._tokens:
+            to_corpus.add(t)
         del self._fileids[id_from]
-        self._fileid_dicts.remove(fromcorpus)
+        self._fileid_dicts.remove(from_corpus)
 
         # Add id_from's files to id_to
         fromfiles = self._fileid_mapping[id_from]
