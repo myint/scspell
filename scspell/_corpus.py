@@ -441,13 +441,12 @@ class CorporaFile(object):
                              "left!".format(fq_filename, self._relative_to))
         return rfn
 
-    def _fn_to_fq_rel(self, filename):
-        """Given a filename, returns the tuple
-           (fully-qualified filename, relative filename)
+    def _fn_to_rel(self, filename):
+        """Given a filename relative to ".", return the filename
            relative to the --relative-to path"""
         fq_filename = os.path.normcase(os.path.realpath(filename))
         relfilename = self._make_relative_filename(fq_filename)
-        return (fq_filename, relfilename)
+        return relfilename
 
     def new_file_and_fileid(self, fq_filename, file_id):
         """Add a mapping for this filename and file_id"""
@@ -491,7 +490,7 @@ class CorporaFile(object):
         else:
             filename_to = merge_to
             if self._relative_to is not None:
-                (toasfqfn, filename_to) = self._fn_to_fq_rel(filename_to)
+                filename_to = self._fn_to_rel(filename_to)
             id_to = self.fileid_of_rel_file(filename_to)
             if id_to is None:
                 raise SystemExit("Can't find merge_to {0} as file ID or file".
@@ -502,7 +501,7 @@ class CorporaFile(object):
         else:
             filename_from = merge_from
             if self._relative_to is not None:
-                (fromasfqfn, filename_from) = self._fn_to_fq_rel(filename_from)
+                filename_from = self._fn_to_rel(filename_from)
             id_from = self.fileid_of_rel_file(filename_from)
             if id_from is None:
                 raise SystemExit("Can't find merge_from {0} as file ID or file"
@@ -530,7 +529,7 @@ class CorporaFile(object):
         self._fileid_mapping_is_dirty = True
 
     def delete_file(self, filename):
-        (fq_filename, relfilename) = self._fn_to_fq_rel(filename)
+        relfilename = self._fn_to_rel(filename)
         try:
             id = self._revfileid_mapping[relfilename]
         except:
@@ -558,8 +557,8 @@ class CorporaFile(object):
         self._fileid_mapping_is_dirty = True
 
     def rename_file(self, rename_from, rename_to):
-        (from_fq, from_rel) = self._fn_to_fq_rel(rename_from)
-        (to_fq, to_rel) = self._fn_to_fq_rel(rename_to)
+        from_rel = self._fn_to_rel(rename_from)
+        to_rel = self._fn_to_rel(rename_to)
         if from_rel not in self._revfileid_mapping:
             _util.mutter(_util.VERBOSITY_NORMAL,
                          "No file ID for " + rename_from)
