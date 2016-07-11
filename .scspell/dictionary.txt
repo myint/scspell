@@ -28,8 +28,6 @@ ontext
 rogramming
 
 FILEID: 3dadcb18-46c1-11e6-907f-843835579daa
-fnfrom
-fnto
 fqfilename
 fromasfqfn
 fromcorpus

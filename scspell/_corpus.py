@@ -489,10 +489,10 @@ class CorporaFile(object):
         if self.fileid_exists(merge_to):
             id_to = merge_to
         else:
-            fnto = merge_to
+            filename_to = merge_to
             if self._relative_to is not None:
-                (toasfqfn, fnto) = self._fn_to_fq_rel(fnto)
-            id_to = self.fileid_of_rel_file(fnto)
+                (toasfqfn, filename_to) = self._fn_to_fq_rel(filename_to)
+            id_to = self.fileid_of_rel_file(filename_to)
             if id_to is None:
                 raise SystemExit("Can't find merge_to {0} as file ID or file".
                                  format(merge_to))
@@ -500,10 +500,10 @@ class CorporaFile(object):
         if self.fileid_exists(merge_from):
             id_from = merge_from
         else:
-            fnfrom = merge_from
+            filename_from = merge_from
             if self._relative_to is not None:
-                (fromasfqfn, fnfrom) = self._fn_to_fq_rel(fnfrom)
-            id_from = self.fileid_of_rel_file(fnfrom)
+                (fromasfqfn, filename_from) = self._fn_to_fq_rel(filename_from)
+            id_from = self.fileid_of_rel_file(filename_from)
             if id_from is None:
                 raise SystemExit("Can't find merge_from {0} as file ID or file"
                                  "".format(id_from))
