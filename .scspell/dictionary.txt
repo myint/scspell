@@ -28,7 +28,6 @@ ontext
 rogramming
 
 FILEID: 3dadcb18-46c1-11e6-907f-843835579daa
-fromasfqfn
 fromcorpus
 fromfiles
 newtokens
@@ -37,7 +36,6 @@ relfn
 reptstring
 revfileid
 sortedfilenames
-toasfqfn
 tocorpus
 tofiles
 tstr
