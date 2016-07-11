@@ -364,11 +364,11 @@ class CorporaFile(object):
             # Generate a fake file name to use to query the base dicts.
             # Since we aren't using MATCH_FILEID, the basename won't be
             # used, only the extension.
-            fakefn = "fake." + ext
+            fake_filename = "fake." + ext
             file_type_corp = self._extensions[ext]
             newtokens = []
             for t in file_type_corp._tokens:
-                if self.token_is_in_base_dict(t, fakefn, None,
+                if self.token_is_in_base_dict(t, fake_filename, None,
                                               MATCH_NATURAL | MATCH_FILETYPE):
                     file_type_corp._mark_dirty()
                 else:
