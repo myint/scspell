@@ -105,10 +105,10 @@ class MatchDescriptor(object):
     """A MatchDescriptor captures the information necessary to represent a
     token matched within some source code."""
 
-    def __init__(self, text, matchobj):
+    def __init__(self, text, match_obj):
         self._data = text
-        self._pos = matchobj.start()
-        self._token = matchobj.group()
+        self._pos = match_obj.start()
+        self._token = match_obj.group()
         self._context = None
         self._line_num = None
 
@@ -183,7 +183,7 @@ def make_unique(items):
 
 
 def get_new_file_id():
-    """Produce a new fileid string."""
+    """Produce a new file ID string."""
     return str(uuid.uuid1())
 
 
@@ -354,7 +354,7 @@ def handle_add(unmatched_subtokens, filename, fq_filename, file_id_ref, dicts):
             elif offer_N and (ch == 'N'):
                 file_id = get_new_file_id()
                 file_id_ref[0] = file_id
-                print("New fileid {0} for {1}".format(file_id, filename),
+                print("New file ID {0} for {1}".format(file_id, filename),
                       file=sys.stderr)
                 dicts.new_file_and_fileid(fq_filename, file_id)
                 dicts.add_by_fileid(subtoken, file_id)
@@ -710,11 +710,11 @@ def filter_out_base_dicts(override_dictionary=None, base_dicts=[]):
 
 def merge_file_ids(merge_from, merge_to,
                    override_dictionary=None, base_dicts=[], relative_to=None):
-    """Merge the fileids specified by merge_to and merge_from.
+    """Merge the file IDs specified by merge_to and merge_from.
 
-    Combine the wordlists in the specified dictionary, and their fileid map
-    entries.  They each may be either a fileid, or a filename.  If a filename,
-    the fileid corresponding to it is the one merged.
+    Combine the wordlists in the specified dictionary, and their file ID map
+    entries.  They each may be either a file ID, or a filename.  If a filename,
+    the file ID corresponding to it is the one merged.
 
     Use merge_to for the result, discarding merge_from."""
     dict_file = find_dict_file(override_dictionary)
@@ -725,7 +725,7 @@ def merge_file_ids(merge_from, merge_to,
 
 def rename_file(rename_from, rename_to,
                 override_dictionary=None, base_dicts=[], relative_to=None):
-    """Rename the file rename_from to rename_to, wrt. the fileid mappings."""
+    """Rename the file rename_from to rename_to, wrt. the file ID mappings."""
     dict_file = find_dict_file(override_dictionary)
 
     with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
