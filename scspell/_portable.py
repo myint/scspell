@@ -48,13 +48,13 @@ except ImportError:
         return ch
 
 
-def get_data_dir(progname):
+def get_data_dir(prog_name):
     """Retrieves a platform-appropriate data directory for the specified
     program."""
     if sys.platform == 'win32':
         parent_dir = os.getenv('APPDATA')
-        prog_dir = progname
+        prog_dir = prog_name
     else:
         parent_dir = os.path.expanduser('~')
-        prog_dir = '.' + progname
+        prog_dir = '.' + prog_name
     return os.path.normpath(os.path.join(parent_dir, prog_dir))
