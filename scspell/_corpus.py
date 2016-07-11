@@ -445,9 +445,9 @@ class CorporaFile(object):
         """Given a filename, returns the tuple
            (fully-qualified filename, relative filename)
            relative to the --relative-to path"""
-        fqfilename = os.path.normcase(os.path.realpath(filename))
-        relfilename = self._make_relative_filename(fqfilename)
-        return (fqfilename, relfilename)
+        fq_filename = os.path.normcase(os.path.realpath(filename))
+        relfilename = self._make_relative_filename(fq_filename)
+        return (fq_filename, relfilename)
 
     def new_file_and_fileid(self, fq_filename, file_id):
         """Add a mapping for this filename and file_id"""
@@ -530,7 +530,7 @@ class CorporaFile(object):
         self._fileid_mapping_is_dirty = True
 
     def delete_file(self, filename):
-        (fqfilename, relfilename) = self._fn_to_fq_rel(filename)
+        (fq_filename, relfilename) = self._fn_to_fq_rel(filename)
         try:
             id = self._revfileid_mapping[relfilename]
         except:
