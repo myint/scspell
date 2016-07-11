@@ -520,12 +520,12 @@ class CorporaFile(object):
         self._fileid_dicts.remove(from_corpus)
 
         # Add id_from's files to id_to
-        fromfiles = self._fileid_mapping[id_from]
-        tofiles = self._fileid_mapping[id_to]
-        for f in fromfiles:
-            tofiles.append(f)
+        from_files = self._fileid_mapping[id_from]
+        to_files = self._fileid_mapping[id_to]
+        for f in from_files:
+            to_files.append(f)
             self._revfileid_mapping[f] = id_to
-        self._fileid_mapping[id_to] = sorted(tofiles)
+        self._fileid_mapping[id_to] = sorted(to_files)
         self._fileid_mapping_is_dirty = True
 
     def delete_file(self, filename):
