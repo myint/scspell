@@ -31,7 +31,6 @@ typeerror
 
 FILEID: 8bfe4130-46c1-11e6-907f-843835579daa
 appdata
-progname
 
 NATURAL:
 american
