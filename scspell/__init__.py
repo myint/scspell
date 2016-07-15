@@ -349,15 +349,15 @@ def handle_add(unmatched_subtokens, filename, fq_filename, file_id_ref, dicts):
                 dicts.add_natural(subtoken)
                 break
             elif offer_f and (ch == 'f'):
-                dicts.add_by_fileid(subtoken, file_id)
+                dicts.add_by_file_id(subtoken, file_id)
                 break
             elif offer_N and (ch == 'N'):
                 file_id = get_new_file_id()
                 file_id_ref[0] = file_id
                 print("New file ID {0} for {1}".format(file_id, filename),
                       file=sys.stderr)
-                dicts.new_file_and_fileid(fq_filename, file_id)
-                dicts.add_by_fileid(subtoken, file_id)
+                dicts.new_file_and_file_id(fq_filename, file_id)
+                dicts.add_by_file_id(subtoken, file_id)
                 prompt = None  # reselect prompt now that file_id is not None
                 break
     return True
@@ -537,7 +537,7 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
             '(File contains id "%s".)' %
             file_id)
     else:
-        file_id = dicts.fileid_of_file(fq_filename)
+        file_id = dicts.file_id_of_file(fq_filename)
 
     file_id_ref = [file_id]  # allow for spell_check() creating a file_id
 
