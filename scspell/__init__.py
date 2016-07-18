@@ -676,7 +676,8 @@ def find_dict_file(override_dictionary):
 
 def spell_check(source_filenames, override_dictionary=None,
                 base_dicts=[],
-                relative_to=None, report_only=False, c_escapes=True):
+                relative_to=None, report_only=False, c_escapes=True,
+                test_input=False):
     """Run the interactive spell checker on the set of source_filenames.
 
     If override_dictionary is provided, it shall be used as a dictionary
@@ -685,6 +686,9 @@ def spell_check(source_filenames, override_dictionary=None,
     :returns: None
 
     """
+    if test_input:
+        _portable.allow_non_terminal_input()
+
     dict_file = find_dict_file(override_dictionary)
 
     okay = True

@@ -33,6 +33,7 @@ def main():
 
     dict_group = parser.add_argument_group("dictionary file management")
     spell_group = parser.add_argument_group("spell-check control")
+    test_group = parser.add_argument_group("testing options")
 
     spell_group.add_argument(
         '--report-only', dest='report', action='store_true',
@@ -99,6 +100,10 @@ def main():
              'dictionary will be removed; this will not spell check the '
              'files')
 
+    test_group.add_argument(
+        '--test-input', action='store_true', default=False,
+        help='allow scspell to read stdin from a non-terminal.')
+
     parser.add_argument(
         '-D', '--debug', dest='debug', action='store_true',
         help='print extra debugging information')
@@ -145,9 +150,9 @@ def main():
                                    args.base_dicts,
                                    args.relative_to,
                                    args.report,
-                                   args.c_escapes)
+                                   args.c_escapes,
+                                   args.test_input)
         return 0 if okay else 1
-
 
 if __name__ == '__main__':
     sys.exit(main())

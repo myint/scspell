@@ -26,18 +26,20 @@ from __future__ import unicode_literals
 import os
 import sys
 
+getch = None
 # Cross-platform version of getch()
 try:
     import msvcrt
 
-    def getch():
+    def msvcrt_getch():
         return msvcrt.getch()
+    getch = msvcrt_getch
 
 except ImportError:
     import tty
     import termios
 
-    def getch():
+    def termios_getch():
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
@@ -46,6 +48,14 @@ except ImportError:
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
+    getch = termios_getch
+
+
+def allow_non_terminal_input():
+    def testing_getch():
+        return sys.stdin.read(1)
+    global getch
+    getch = testing_getch
 
 
 def get_data_dir(prog_name):
