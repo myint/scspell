@@ -155,5 +155,6 @@ def main():
                                    args.test_input)
         return 0 if okay else 1
 
+
 if __name__ == '__main__':
     sys.exit(main())
