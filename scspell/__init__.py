@@ -66,11 +66,6 @@ CONTEXT_SIZE = 4
 # Subtokens shorter than 4 characters are likely to be abbreviations
 LEN_THRESHOLD = 3
 
-# Special key codes returned from getch()
-CTRL_C = '\x03'
-CTRL_D = '\x04'
-CTRL_Z = '\x1a'
-
 USER_DATA_DIR = _portable.get_data_dir('scspell')
 DICT_DEFAULT_LOC = os.path.join(USER_DATA_DIR, 'dictionary.txt')
 SCSPELL_DATA_DIR = os.path.normpath(
@@ -329,7 +324,7 @@ def handle_add(unmatched_subtokens, filename, fq_filename, file_id_ref, dicts):
 
             print(prompt % subtoken)
             ch = _portable.getch()
-            if ch in (CTRL_C, CTRL_D, CTRL_Z):
+            if ch in (_portable.CTRL_C, _portable.CTRL_D, _portable.CTRL_Z):
                 print('User abort.')
                 sys.exit(1)
             elif ch == 'b':
@@ -393,7 +388,7 @@ def handle_failed_check_interactively(
    (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
    show (c)ontext? [i]""")
         ch = _portable.getch()
-        if ch in (CTRL_C, CTRL_D, CTRL_Z):
+        if ch in (_portable.CTRL_C, _portable.CTRL_D, _portable.CTRL_Z):
             print('User abort.')
             sys.exit(1)
         elif ch in ('i', '\r', '\n'):
@@ -676,7 +671,8 @@ def find_dict_file(override_dictionary):
 
 def spell_check(source_filenames, override_dictionary=None,
                 base_dicts=[],
-                relative_to=None, report_only=False, c_escapes=True):
+                relative_to=None, report_only=False, c_escapes=True,
+                test_input=False):
     """Run the interactive spell checker on the set of source_filenames.
 
     If override_dictionary is provided, it shall be used as a dictionary
@@ -685,6 +681,9 @@ def spell_check(source_filenames, override_dictionary=None,
     :returns: None
 
     """
+    if test_input:
+        _portable.allow_non_terminal_input()
+
     dict_file = find_dict_file(override_dictionary)
 
     okay = True

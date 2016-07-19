@@ -84,3 +84,66 @@ Filter out builtin-base-dict from base-dictionary-2
     $ $SCSPELL --override-dictionary $T/base-dictionary-2 \
     >     --use-builtin-base-dict --filter-out-base-dicts
     $ diff -u $T/base-dictionary-2 $T/base-dictionary-2.filtered
+
+Test interactive use, using --test-input instead of --report-only
+
+    $ SCSPELL="$TESTDIR/scspell.py --test-input"
+
+ replace bakingsoda -> barking soda
+ ignore cromulent
+ add-natural embiggen
+ show context of yavin
+ replace/cancel-via-enter yavin
+ add/back yavin
+ ignore yavin
+
+    $ (echo rbarking soda; echo iancr; echo abi) | \
+    > $SCSPELL --use-builtin-base-dict --override-dictionary $T/newdict \
+    > $T/testfile
+    Warning: unable to read dictionary file 'tests/basedicts/newdict' (reason: [Errno 2] No such file or directory: 'tests/basedicts/newdict')
+    Continuing with empty natural dictionary
+    
+    tests/basedicts/testfile:1: Unmatched 'bakingsoda' --> {bakingsoda}
+       (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
+       show (c)ontext? [i]
+          Replacement text for 'bakingsoda': 
+    tests/basedicts/testfile:2: Unmatched 'cromulent' --> {cromulent}
+       (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
+       show (c)ontext? [i]
+    
+    tests/basedicts/testfile:3: Unmatched 'embiggen' --> {embiggen}
+       (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
+       show (c)ontext? [i]
+          Subtoken 'embiggen':
+             (b)ack, (i)gnore, add to (n)atural language dictionary [i]
+    
+    tests/basedicts/testfile:3: Unmatched 'yavin' --> {yavin}
+       (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
+       show (c)ontext? [i]
+       1: hoth apple barking soda
+       2: perfectly cromulent
+       3: also embiggen yavin
+       4: 
+    
+       (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
+       show (c)ontext? [i]
+          Replacement text for 'yavin':       (Canceled.)
+    
+       (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
+       show (c)ontext? [i]
+          Subtoken 'yavin':
+             (b)ack, (i)gnore, add to (n)atural language dictionary [i]
+             (Canceled.)
+    
+       (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
+       show (c)ontext? [i]
+    
+    [1]
+    $ cat $T/testfile
+    hoth apple barking soda
+    perfectly cromulent
+    also embiggen yavin
+    $ cat $T/newdict
+    NATURAL:
+    embiggen
+    
