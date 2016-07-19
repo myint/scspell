@@ -26,6 +26,11 @@ from __future__ import unicode_literals
 import os
 import sys
 
+# Special key codes returned from getch()
+CTRL_C = '\x03'
+CTRL_D = '\x04'
+CTRL_Z = '\x1a'
+
 getch = None
 # Cross-platform version of getch()
 try:
