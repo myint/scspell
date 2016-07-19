@@ -58,7 +58,10 @@ except ImportError:
 
 def allow_non_terminal_input():
     def testing_getch():
-        return sys.stdin.read(1)
+        s = sys.stdin.read(1)
+        if s == "":
+            return CTRL_D
+        return s
     global getch
     getch = testing_getch
 
