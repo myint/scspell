@@ -100,9 +100,10 @@ def main():
              'dictionary will be removed; this will not spell check the '
              'files')
 
+    #  Testing option to allow scspell to read stdin from a non-tty
     test_group.add_argument(
         '--test-input', action='store_true', default=False,
-        help='allow scspell to read stdin from a non-terminal.')
+        help=argparse.SUPPRESS)
 
     parser.add_argument(
         '-D', '--debug', dest='debug', action='store_true',
