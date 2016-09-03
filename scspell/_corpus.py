@@ -194,7 +194,9 @@ class CorporaFile(object):
 
     """The CorporaFile manages a single file containing multiple corpora.
 
-    May include filename<->file ID mapping file too."""
+    May include filename<->file ID mapping file too.
+
+    """
 
     def __init__(self, filename, base_dicts, relative_to):
         """Construct an instance from the file with the given filename.
@@ -253,13 +255,13 @@ class CorporaFile(object):
 
         if not self._relative_to:
             return
-        mapping_file = self._filename + ".fileids.json"
+        mapping_file = self._filename + '.fileids.json'
         try:
             with io.open(mapping_file, mode='r', encoding='utf-8') as mf:
                 try:
                     self._file_id_mapping = json.load(mf)
                     _util.mutter(_util.VERBOSITY_DEBUG,
-                                 "got file ID mapping:\n{0}"
+                                 'got file ID mapping:\n{0}'
                                  .format(self._file_id_mapping))
                 except ValueError as e:
                     # Error during file creation might leave an empty file
@@ -270,7 +272,7 @@ class CorporaFile(object):
         except IOError as e:
             if e.errno == errno.ENOENT:
                 _util.mutter(_util.VERBOSITY_DEBUG,
-                             "No file ID mappings file {0}".format(
+                             'No file ID mappings file {0}'.format(
                                  mapping_file))
             else:
                 raise SystemExit(
@@ -364,7 +366,7 @@ class CorporaFile(object):
             # Generate a fake file name to use to query the base dicts.
             # Since we aren't using MATCH_FILEID, the basename won't be
             # used, only the extension.
-            fake_filename = "fake." + ext
+            fake_filename = 'fake.' + ext
             file_type_corp = self._extensions[ext]
             new_tokens = []
             for t in file_type_corp._tokens:
@@ -426,9 +428,9 @@ class CorporaFile(object):
             corpus.add(token)
 
     def _make_relative_filename(self, fq_filename):
-        """return fq_filename relative to self._relative_to"""
+        """return fq_filename relative to self._relative_to."""
         if not fq_filename.startswith(self._relative_to):
-            raise SystemExit("File {0} not within --relative-to {1}".
+            raise SystemExit('File {0} not within --relative-to {1}'.
                              format(fq_filename, self._relative_to))
         rfn = fq_filename[len(self._relative_to):]
 
@@ -438,7 +440,7 @@ class CorporaFile(object):
             rfn = rfn[1:]
         if len(rfn) == 0:
             raise SystemExit("Making {0} relative to {1}: There's nothing "
-                             "left!".format(fq_filename, self._relative_to))
+                             'left!'.format(fq_filename, self._relative_to))
         return rfn
 
     def _fn_to_rel(self, filename):
@@ -449,14 +451,14 @@ class CorporaFile(object):
         return rel_filename
 
     def new_file_and_file_id(self, fq_filename, file_id):
-        """Add a mapping for this filename and file_id"""
+        """Add a mapping for this filename and file_id."""
 
         if self._relative_to is None:
-            raise AssertionError("new_file_and_file_id called without "
-                                 "--relative-to")
+            raise AssertionError('new_file_and_file_id called without '
+                                 '--relative-to')
         rel_filename = self._make_relative_filename(fq_filename)
         if rel_filename in self._reverse_file_id_mapping:
-            raise AssertionError("{0} already has file_id {1}".format(
+            raise AssertionError('{0} already has file_id {1}'.format(
                 rel_filename, self._reverse_file_id_mapping[rel_filename]))
         self._reverse_file_id_mapping[rel_filename] = file_id
         if file_id not in self._file_id_mapping:
@@ -505,10 +507,10 @@ class CorporaFile(object):
             id_from = self.file_id_of_rel_file(filename_from)
             if id_from is None:
                 raise SystemExit("Can't find merge_from {0} as file ID or file"
-                                 "".format(id_from))
+                                 ''.format(id_from))
 
         _util.mutter(_util.VERBOSITY_DEBUG,
-                     "Going to merge {id_from} into {id_to}".format(
+                     'Going to merge {id_from} into {id_to}'.format(
                          id_from=id_from, id_to=id_to))
 
         # merge wordlists
@@ -536,12 +538,12 @@ class CorporaFile(object):
             if filename == rel_filename:
                 report_str = filename
             else:
-                report_str = "{0} ({1})".format(filename, rel_filename)
+                report_str = '{0} ({1})'.format(filename, rel_filename)
             _util.mutter(_util.VERBOSITY_NORMAL,
-                         "No file ID for {0}".format(report_str))
+                         'No file ID for {0}'.format(report_str))
             return
         _util.mutter(_util.VERBOSITY_NORMAL,
-                     "Removing {0} <-> {1} mappings".format(
+                     'Removing {0} <-> {1} mappings'.format(
                          filename, id))
         del self._reverse_file_id_mapping[rel_filename]
         fns = self._file_id_mapping[id]
@@ -561,7 +563,7 @@ class CorporaFile(object):
         to_rel = self._fn_to_rel(rename_to)
         if from_rel not in self._reverse_file_id_mapping:
             _util.mutter(_util.VERBOSITY_NORMAL,
-                         "No file ID for " + rename_from)
+                         'No file ID for ' + rename_from)
             return
 
         if to_rel in self._reverse_file_id_mapping:
@@ -570,7 +572,7 @@ class CorporaFile(object):
         id_from = self._reverse_file_id_mapping[from_rel]
 
         _util.mutter(_util.VERBOSITY_NORMAL,
-                     "Switching file ID {0} from {1} to {2}".format(
+                     'Switching file ID {0} from {1} to {2}'.format(
                          id_from, from_rel, to_rel))
 
         fns = self._file_id_mapping[id_from]
@@ -643,8 +645,8 @@ class CorporaFile(object):
 
         if self._file_id_mapping_is_dirty:
             if self._relative_to is None:
-                raise AssertionError("file ID mapping is dirty but " +
-                                     "relative_to is None")
+                raise AssertionError('file ID mapping is dirty but ' +
+                                     'relative_to is None')
 
             # Build an OrderedDict sorted by first filename of id, so the
             # mapping file is more reader-friendly.  It will also be
@@ -660,7 +662,7 @@ class CorporaFile(object):
                 copied_ids.add(id)
                 od[id] = sorted(self._file_id_mapping[id])
 
-            mapping_file = self._filename + ".fileids.json"
+            mapping_file = self._filename + '.fileids.json'
             try:
                 with io.open(mapping_file, mode='w', encoding='utf-8') as mf:
                     # http://stackoverflow.com/questions/36003023/json-dump-failing-with-must-be-unicode-not-str-typeerror
@@ -669,12 +671,12 @@ class CorporaFile(object):
                     if isinstance(json_str, str):
                         # Apply py2 workaround only on py2
                         if sys.version_info[0] == 2:
-                            json_str = json_str.decode("utf-8")
+                            json_str = json_str.decode('utf-8')
                     mf.write(json_str)
                 self._file_id_mapping_is_dirty = False
             except IOError as e:
                 print("Warning: unable to write file ID mapping file '{0}' "
-                      "(reason: {1})".format(mapping_file, e))
+                      '(reason: {1})'.format(mapping_file, e))
 
         # Since we add words only to this, not to any base corpora
         # file, there's nothing to do for the base files now.  But it
@@ -683,7 +685,7 @@ class CorporaFile(object):
         # any changes out.
         for bc in self._base_corpora_files:
             if bc.is_dirty():
-                raise AssertionError("_base_corpora_file is dirty")
+                raise AssertionError('_base_corpora_file is dirty')
             bc.close()
 
     def _parse(self, lines):
