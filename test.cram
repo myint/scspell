@@ -2,7 +2,7 @@
 
 Test scspell.
 
-    $ SCSPELL="$TESTDIR/scspell.py --report-only"
+    $ SCSPELL="python $TESTDIR --report-only"
 
 Test spelling mistake.
 
@@ -87,7 +87,7 @@ Filter out builtin-base-dict from base-dictionary-2
 
 Test interactive use, using --test-input instead of --report-only
 
-    $ SCSPELL="$TESTDIR/scspell.py --test-input"
+    $ SCSPELL="python $TESTDIR --test-input"
 
  replace bakingsoda -> barking soda
  ignore cromulent

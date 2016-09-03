@@ -3,6 +3,7 @@ argparse
 configparser
 nargs
 pgen
+setuptools
 strerror
 
 FILEID: e497803c-523a-11de-ae42-0017f2ee0f37

@@ -23,6 +23,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import argparse
 import os
 import re
 import sys
@@ -270,7 +271,7 @@ def handle_new_extension(ext, dicts):
 
 
 def build_add_prompt(offer_p, offer_f, offer_N):
-    """Build a prompt for adding a word to a dictionary
+    """Build a prompt for adding a word to a dictionary.
 
     :param offer_p: offer a (p)rogramming language dictionary
     :type offer_p: bool
@@ -278,7 +279,9 @@ def build_add_prompt(offer_p, offer_f, offer_N):
     :type offer_f: bool
     :param offer_N: offer to create a (N)ew file-specific dictionary
     :type offer_p: bool
-    :returns: prompt string"""
+    :returns: prompt string
+
+    """
 
     prompt = """\
       Subtoken '%s':
@@ -349,7 +352,7 @@ def handle_add(unmatched_subtokens, filename, fq_filename, file_id_ref, dicts):
             elif offer_N and (ch == 'N'):
                 file_id = get_new_file_id()
                 file_id_ref[0] = file_id
-                print("New file ID {0} for {1}".format(file_id, filename),
+                print('New file ID {0} for {1}'.format(file_id, filename),
                       file=sys.stderr)
                 dicts.new_file_and_file_id(fq_filename, file_id)
                 dicts.add_by_file_id(subtoken, file_id)
@@ -655,8 +658,8 @@ def export_dictionary(filename, base_dicts):
     """
     if (base_dicts):
         raise SystemExit(
-                     "--export-dictionary doesn't support " +
-                     "--base-dict")
+            "--export-dictionary doesn't support " +
+            '--base-dict')
         return
     shutil.copyfile(locate_dictionary(), filename)
 
@@ -715,7 +718,9 @@ def merge_file_ids(merge_from, merge_to,
     entries.  They each may be either a file ID, or a filename.  If a filename,
     the file ID corresponding to it is the one merged.
 
-    Use merge_to for the result, discarding merge_from."""
+    Use merge_to for the result, discarding merge_from.
+
+    """
     dict_file = find_dict_file(override_dictionary)
 
     with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
@@ -724,7 +729,11 @@ def merge_file_ids(merge_from, merge_to,
 
 def rename_file(rename_from, rename_to,
                 override_dictionary=None, base_dicts=[], relative_to=None):
-    """Rename the file rename_from to rename_to, wrt. the file ID mappings."""
+    """Rename the file rename_from to rename_to, wrt.
+
+    the file ID mappings.
+
+    """
     dict_file = find_dict_file(override_dictionary)
 
     with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
@@ -738,3 +747,131 @@ def delete_files(delete_files,
     with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
         for file in delete_files:
             dicts.delete_file(file)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, prog='scspell')
+
+    dict_group = parser.add_argument_group('dictionary file management')
+    spell_group = parser.add_argument_group('spell-check control')
+    test_group = parser.add_argument_group('testing options')
+
+    spell_group.add_argument(
+        '--report-only', dest='report', action='store_true',
+        help='non-interactive report of spelling errors')
+    spell_group.add_argument(
+        '--no-c-escapes', dest='c_escapes',
+        action='store_false', default=True,
+        help='treat \\label as label, for e.g. LaTeX')
+
+    dict_group.add_argument(
+        '--override-dictionary', dest='override_filename',
+        help='set location of dictionary to FILE, for current session only',
+        metavar='FILE', action='store')
+    dict_group.add_argument(
+        '--set-dictionary', dest='dictionary',
+        help='permanently set location of dictionary to FILE', metavar='FILE',
+        action='store')
+    dict_group.add_argument(
+        '--export-dictionary', dest='export_filename',
+        help='export current dictionary to FILE', metavar='FILE',
+        action='store')
+    dict_group.add_argument(
+        '--base-dict', dest='base_dicts', action='append', default=[],
+        metavar='BASE_DICT',
+        help="Match words from BASE_DICT, but don't modify it.")
+    dict_group.add_argument(
+        '--use-builtin-base-dict', dest='base_dicts',
+        action='append_const', const=SCSPELL_BUILTIN_DICT,
+        help="Use scspell's default wordlist as a base dictionary ({0})"
+        .format(SCSPELL_BUILTIN_DICT))
+    dict_group.add_argument(
+        '--filter-out-base-dicts', action='store_true',
+        help='Remove from the dictionary file '
+             'all the words from the base dicts')
+    dict_group.add_argument(
+        '--relative-to', dest='relative_to',
+        help='use file paths relative to here in file ID map.  '
+             'This is required to enable use of the file ID map',
+        action='store')
+    dict_group.add_argument(
+        '-i', '--gen-id', dest='gen_id', action='store_true',
+        help='generate a unique file-id string')
+    dict_group.add_argument(
+        '--merge-file-ids', nargs=2,
+        metavar=('FROM_ID', 'TO_ID'),
+        help='merge these two file IDs, keeping TO_ID and discarding FROM_ID; '
+             'combine their word lists in the dictionary, and the filenames '
+             'associated with them in the file ID map; TO_ID and FROM_ID may '
+             'be given as file IDs, or as filenames in which case the file '
+             'IDs corresponding to those files are operated on; does NOT look '
+             'for or consider any file IDs embedded in to-be-spell-checked '
+             'files; if your filenames look like file IDs, do it by hand')
+    dict_group.add_argument(
+        '--rename-file', nargs=2,
+        metavar=('FROM_FILE', 'TO_FILE'),
+        help='inform scspell that FROM_FILE has been renamed TO_FILE; '
+             'if an entry in the file ID mapping references FROM_FILE, it '
+             'will be modified to reference TO_FILE instead')
+    dict_group.add_argument(
+        '--delete-files', action='store_true', default=False,
+        help='inform scspell that the listed files have been deleted; all '
+             'file ID mappings for the files will be removed; if all uses of '
+             'that file ID have been removed, the corresponding file-private '
+             'dictionary will be removed; this will not spell check the '
+             'files')
+
+    #  Testing option to allow scspell to read stdin from a non-tty
+    test_group.add_argument(
+        '--test-input', action='store_true', default=False,
+        help=argparse.SUPPRESS)
+
+    parser.add_argument(
+        '-D', '--debug', dest='debug', action='store_true',
+        help='print extra debugging information')
+    parser.add_argument(
+        '--version', action='version',
+        version='%(prog)s ' + __version__)
+    parser.add_argument(
+        'files', nargs='*', help='files to check')
+
+    args = parser.parse_args()
+
+    if args.debug:
+        set_verbosity(VERBOSITY_MAX)
+
+    if args.gen_id:
+        print('scspell-id: %s' % get_new_file_id())
+    elif args.dictionary is not None:
+        set_dictionary(args.dictionary)
+    elif args.export_filename is not None:
+        export_dictionary(args.export_filename, args.base_dicts)
+        print("Exported dictionary to '{}'".format(args.export_filename),
+              file=sys.stderr)
+    elif args.merge_file_ids is not None:
+        merge_file_ids(args.merge_file_ids[0], args.merge_file_ids[1],
+                       args.override_filename,
+                       args.base_dicts, args.relative_to)
+    elif args.rename_file is not None:
+        rename_file(args.rename_file[0], args.rename_file[1],
+                    args.override_filename,
+                    args.base_dicts, args.relative_to)
+    elif args.delete_files:
+        if len(args.files) < 1:
+            parser.error('No files specified for delete')
+        delete_files(args.files,
+                     args.override_filename,
+                     args.base_dicts, args.relative_to)
+    elif args.filter_out_base_dicts:
+        filter_out_base_dicts(args.override_filename, args.base_dicts)
+    elif len(args.files) < 1:
+        parser.error('No files specified')
+    else:
+        okay = spell_check(args.files,
+                           args.override_filename,
+                           args.base_dicts,
+                           args.relative_to,
+                           args.report,
+                           args.c_escapes,
+                           args.test_input)
+        return 0 if okay else 1
