@@ -729,9 +729,9 @@ def merge_file_ids(merge_from, merge_to,
 
 def rename_file(rename_from, rename_to,
                 override_dictionary=None, base_dicts=[], relative_to=None):
-    """Rename the file rename_from to rename_to, wrt.
+    """Rename the file rename_from to rename_to.
 
-    the file ID mappings.
+    This is with respect to the file ID mappings.
 
     """
     dict_file = find_dict_file(override_dictionary)
