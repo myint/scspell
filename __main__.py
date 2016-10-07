@@ -6,4 +6,7 @@ import scspell
 
 
 if __name__ == '__main__':
-    sys.exit(scspell.main())
+    try:
+        sys.exit(scspell.main())
+    except KeyboardInterrupt:
+        sys.exit(2)

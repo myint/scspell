@@ -112,6 +112,11 @@ prompted with the following options for every subtoken:
     add to (n)atural language dictionary
         Add this subtoken to the natural language dictionary.
 
+If scspell finds no unknown tokens, it exits with exit status 0.  If
+there were unknown tokens, it exits with exit status 1.  If it
+terminates in response to a (handled) signal such as a SIGINT from ^C,
+it exits with exit status 2.
+
 
 Spell-checking Options
 ----------------------

@@ -328,8 +328,7 @@ def handle_add(unmatched_subtokens, filename, fq_filename, file_id_ref, dicts):
             print(prompt % subtoken)
             ch = _portable.getch()
             if ch in (_portable.CTRL_C, _portable.CTRL_D, _portable.CTRL_Z):
-                print('User abort.')
-                sys.exit(1)
+                sys.exit(2)
             elif ch == 'b':
                 print("""\
          (Canceled.)\n""")
@@ -392,8 +391,7 @@ def handle_failed_check_interactively(
    show (c)ontext? [i]""")
         ch = _portable.getch()
         if ch in (_portable.CTRL_C, _portable.CTRL_D, _portable.CTRL_Z):
-            print('User abort.')
-            sys.exit(1)
+            sys.exit(2)
         elif ch in ('i', '\r', '\n'):
             break
         elif ch == 'I':
