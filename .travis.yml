@@ -16,8 +16,8 @@ matrix:
         language: generic
 
 before_install:
-   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo pip install --quiet git+https://github.com/myint/cram.git || cat /Users/travis/Library/logs/pip.log; fi
-   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then      pip install --quiet git+https://github.com/myint/cram.git; fi
+   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo pip install --quiet cram || cat /Users/travis/Library/logs/pip.log; fi
+   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then      pip install --quiet cram; fi
 
 install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo python setup.py --quiet install; fi
