@@ -44,6 +44,11 @@ DICT_TYPE_FILEID = 'FILEID'        # Identifies file-specific dictionary
 FILE_ID_REGEX = re.compile(r'[a-zA-Z0-9_\-]+')
 
 
+MATCH_NATURAL = 0x1
+MATCH_FILETYPE = 0x2
+MATCH_FILEID = 0x4
+
+
 class ParsingError(Exception):
 
     """An error occurred when parsing the dictionary file."""
@@ -184,10 +189,6 @@ class PrefixMatchCorpus(Corpus):
             f.write(token + '\n')
         f.write('\n')
         self._mark_clean()
-
-MATCH_NATURAL = 0x1
-MATCH_FILETYPE = 0x2
-MATCH_FILEID = 0x4
 
 
 class CorporaFile(object):
@@ -385,8 +386,8 @@ class CorporaFile(object):
         """Add the token to a programming language-specific corpus associated
         with the extension.
 
-        Returns True if the add was successful, False if there is no corpus
-        with a matching filename extension.
+        Returns True if the add was successful, False if there is no
+        corpus with a matching filename extension.
 
         """
         try:
@@ -407,7 +408,8 @@ class CorporaFile(object):
     def add_by_file_id(self, token, file_id):
         """Add the token to a file-specific corpus.
 
-        If there is no corpus for the given file_id, a new one is created.
+        If there is no corpus for the given file_id, a new one is
+        created.
 
         """
         try:
@@ -444,8 +446,8 @@ class CorporaFile(object):
         return rfn
 
     def _fn_to_rel(self, filename):
-        """Given a filename relative to ".", return the filename
-           relative to the --relative-to path"""
+        """Given a filename relative to ".", return the filename relative to
+        the --relative-to path."""
         fq_filename = os.path.normcase(os.path.realpath(filename))
         rel_filename = self._make_relative_filename(fq_filename)
         return rel_filename
