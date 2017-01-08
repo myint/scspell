@@ -44,6 +44,10 @@ Test file ID manipulations
     >     --relative-to tests/fileidmap \
     >     --delete-file tests/fileidmap/mix5.txt
     Removing tests/fileidmap/mix5.txt <-> 7f72eb84-3576-11e6-a3a6-10ddb1d4c3d5 mappings
+    $ $SCSPELL --override-dictionary tests/fileidmap/dictionary \
+    >     --relative-to tests/fileidmap \
+    >     --copy-file tests/fileidmap/mix3.txt tests/fileidmap/mix33.txt
+    Setting mix33.txt to use mix3.txt's file ID d6ee6908-3574-11e6-a3a6-10ddb1d4c3d5.
     $ diff tests/fileidmap/dictionary tests/fileidmap/dictionary.post
     $ diff tests/fileidmap/dictionary.fileids.json \
     >      tests/fileidmap/dictionary.fileids.json.post
