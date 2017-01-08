@@ -699,8 +699,8 @@ def spell_check(source_filenames, override_dictionary=None,
 def filter_out_base_dicts(override_dictionary=None, base_dicts=[]):
     """Remove from our dictionary the words from the base dicts.
 
-    This can be useful for migrating from a version of scspell that
-    did not support the --base-dicts option.
+    This can be useful for migrating from a version of scspell that did
+    not support the --base-dicts option.
 
     """
     dict_file = find_dict_file(override_dictionary)
@@ -818,9 +818,9 @@ def main():
     dict_group.add_argument(
         '--copy-file', nargs=2,
         metavar=('FROM_FILE', 'TO_FILE'),
-        help='inform scspell that TO_FILE is a copy of FROM_FILE.  '
-        'Effectively, set up TO_FILE to use the same per-file dictionary '
-        'as FROM_FILE.')
+        help='inform scspell that TO_FILE is a copy of FROM_FILE; '
+             'effectively, set up TO_FILE to use the same per-file dictionary '
+             'as FROM_FILE')
     dict_group.add_argument(
         '--rename-file', nargs=2,
         metavar=('FROM_FILE', 'TO_FILE'),
