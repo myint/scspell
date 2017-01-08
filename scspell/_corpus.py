@@ -560,6 +560,30 @@ class CorporaFile(object):
             del self._file_ids[id]
         self._file_id_mapping_is_dirty = True
 
+    def copy_file(self, copy_from, copy_to):
+        from_rel = self._fn_to_rel(copy_from)
+        to_rel = self._fn_to_rel(copy_to)
+        if from_rel not in self._reverse_file_id_mapping:
+            _util.mutter(_util.VERBOSITY_NORMAL,
+                         'No file ID for ' + copy_from)
+            return
+
+        if to_rel in self._reverse_file_id_mapping:
+            self.delete_file(to_rel)
+
+        id_from = self._reverse_file_id_mapping[from_rel]
+
+        _util.mutter(_util.VERBOSITY_NORMAL,
+                     'Setting {0} to use {1}\'s file ID {2}.'.format(
+                         to_rel, from_rel, id_from))
+
+        fns = self._file_id_mapping[id_from]
+        fns.append(to_rel)
+        self._file_id_mapping[id_from] = sorted(fns)
+
+        self._reverse_file_id_mapping[to_rel] = id_from
+        self._file_id_mapping_is_dirty = True
+
     def rename_file(self, rename_from, rename_to):
         from_rel = self._fn_to_rel(rename_from)
         to_rel = self._fn_to_rel(rename_to)

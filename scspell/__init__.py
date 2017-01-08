@@ -725,6 +725,16 @@ def merge_file_ids(merge_from, merge_to,
         dicts.merge_file_ids(merge_from, merge_to)
 
 
+def copy_file(copy_from, copy_to,
+              override_dictionary=None, base_dicts=[], relative_to=None):
+    """Set up the file copy_to to use the same per-file dictionary as
+    copy_from."""
+    dict_file = find_dict_file(override_dictionary)
+
+    with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
+        dicts.copy_file(copy_from, copy_to)
+
+
 def rename_file(rename_from, rename_to,
                 override_dictionary=None, base_dicts=[], relative_to=None):
     """Rename the file rename_from to rename_to.
@@ -806,6 +816,12 @@ def main():
              'for or consider any file IDs embedded in to-be-spell-checked '
              'files; if your filenames look like file IDs, do it by hand')
     dict_group.add_argument(
+        '--copy-file', nargs=2,
+        metavar=('FROM_FILE', 'TO_FILE'),
+        help='inform scspell that TO_FILE is a copy of FROM_FILE.  '
+        'Effectively, set up TO_FILE to use the same per-file dictionary '
+        'as FROM_FILE.')
+    dict_group.add_argument(
         '--rename-file', nargs=2,
         metavar=('FROM_FILE', 'TO_FILE'),
         help='inform scspell that FROM_FILE has been renamed TO_FILE; '
@@ -850,6 +866,10 @@ def main():
         merge_file_ids(args.merge_file_ids[0], args.merge_file_ids[1],
                        args.override_filename,
                        args.base_dicts, args.relative_to)
+    elif args.copy_file is not None:
+        copy_file(args.copy_file[0], args.copy_file[1],
+                  args.override_filename,
+                  args.base_dicts, args.relative_to)
     elif args.rename_file is not None:
         rename_file(args.rename_file[0], args.rename_file[1],
                     args.override_filename,
