@@ -89,6 +89,32 @@ Filter out builtin-base-dict from base-dictionary-2
     >     --use-builtin-base-dict --filter-out-base-dicts
     $ diff -u $T/base-dictionary-2 $T/base-dictionary-2.filtered
 
+Test add file to dictionary from command line
+
+    $ SCSPELL="python $TESTDIR --override-dictionary tests/basedicts/addtodict"
+
+    $ $SCSPELL --add-to-dict p additional file.ex
+    Dictionary for file extension '.ex' not found.
+    $ $SCSPELL --add-to-dict natural myfancyword
+    $ $SCSPELL --add-to-dict n special
+    $ $SCSPELL --add-to-dict programming dizzy file.py
+    $ $SCSPELL --add-to-dict p juicy  py
+    $ $SCSPELL --add-to-dict file unique file.py --relative-to .
+    New file ID .* for file.py (re)
+
+    $ cat tests/basedicts/addtodict
+    FILETYPE: Python; .py
+    dizzy
+    juicy
+    
+    FILEID: .* (re)
+    unique
+    
+    NATURAL:
+    myfancyword
+    special
+    
+
 Test interactive use, using --test-input instead of --report-only
 
     $ SCSPELL="python $TESTDIR --test-input"

@@ -748,6 +748,39 @@ def rename_file(rename_from, rename_to,
         dicts.rename_file(rename_from, rename_to)
 
 
+def add_to_dict(dictionary_type, word, files=[],
+                override_dictionary=None, base_dicts=[], relative_to=None):
+    """Add word to dictionary_type.
+
+    This is with respect to the filename ID mappings if 'file' type
+    dictionary is used."""
+    dict_file = find_dict_file(override_dictionary)
+
+    with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
+        if dictionary_type[0] == 'n':
+            dicts.add_natural(word)
+
+        elif dictionary_type[0] == 'f':
+            fq_filename = os.path.normcase(os.path.realpath(files[0]))
+            file_id = dicts.file_id_of_file(fq_filename)
+            if not file_id:
+                file_id = get_new_file_id()
+                print('New file ID {0} for {1}'.format(file_id, files[0]),
+                      file=sys.stderr)
+                dicts.new_file_and_file_id(fq_filename, file_id)
+            dicts.add_by_file_id(word, file_id)
+
+        elif dictionary_type[0] == 'p':
+            ext = re.sub(r'.*\.', '.', '.{}'.format(files[0].lower()))
+            if not dicts.add_by_extension(word, ext):
+                print("Dictionary for file extension '{}' not found."
+                      .format(ext), file=sys.stderr)
+
+        else:
+            print("Dictionary type '{}' not recognized."
+                  .format(dictionary_type), file=sys.stderr)
+
+
 def delete_files(delete_files,
                  override_dictionary=None, base_dicts=[], relative_to=None):
     """Remove all trace of delete_file."""
@@ -834,6 +867,12 @@ def main():
              'that file ID have been removed, the corresponding file-private '
              'dictionary will be removed; this will not spell check the '
              'files')
+    dict_group.add_argument(
+        '--add-to-dict', nargs=2,
+        metavar=('DICT_TYPE', 'WORD'),
+        help="Add WORD to DICT_TYPE dictionary. If adding to 'file' or "
+             "'programming' dictionary then file argument is also required. "
+             'Possible DICT_TYPE values are n[atural], p[rogramming], f[ile]')
 
     #  Testing option to allow scspell to read stdin from a non-tty
     test_group.add_argument(
@@ -880,6 +919,25 @@ def main():
         delete_files(args.files,
                      args.override_filename,
                      args.base_dicts, args.relative_to)
+    elif args.add_to_dict is not None:
+        dictionary_type = str(args.add_to_dict[0])
+        if dictionary_type in ['p', 'programming'] and len(args.files) < 1:
+            parser.error('No file (or extension) specified')
+        elif dictionary_type in ['f', 'file'] and len(args.files) < 1:
+            parser.error('No file specified')
+        elif dictionary_type in ['f', 'file'] and not args.relative_to:
+            parser.error("--relative-to is required in order to use '{}' "
+                         'dictionary type'.format(dictionary_type))
+        elif dictionary_type not in ['p', 'programming',
+                                     'f', 'file', 'n', 'natural']:
+            parser.error("Dictionary type '{}' not found."
+                         .format(dictionary_type))
+
+        add_to_dict(args.add_to_dict[0], args.add_to_dict[1],
+                    args.files,
+                    args.override_filename,
+                    args.base_dicts,
+                    args.relative_to)
     elif args.filter_out_base_dicts:
         filter_out_base_dicts(args.override_filename, args.base_dicts)
     elif len(args.files) < 1:
