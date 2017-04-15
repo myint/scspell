@@ -474,7 +474,7 @@ class CorporaFile(object):
     def file_id_of_rel_file(self, rel_filename):
         try:
             return self._reverse_file_id_mapping[rel_filename]
-        except:
+        except KeyError:
             return None
 
     def file_id_of_file(self, fq_filename):
@@ -536,7 +536,7 @@ class CorporaFile(object):
         rel_filename = self._fn_to_rel(filename)
         try:
             id = self._reverse_file_id_mapping[rel_filename]
-        except:
+        except KeyError:
             if filename == rel_filename:
                 report_str = filename
             else:
