@@ -326,7 +326,7 @@ def handle_add(unmatched_subtokens, filename, fq_filename, file_id_ref, dicts):
                 prompt = build_add_prompt(offer_p, offer_f, offer_N)
 
             print(prompt % subtoken)
-            ch = _portable.getch()
+            ch = _portable.getch().decode( "utf-8" )
             if ch in (_portable.CTRL_C, _portable.CTRL_D, _portable.CTRL_Z):
                 sys.exit(2)
             elif ch == 'b':
@@ -389,7 +389,7 @@ def handle_failed_check_interactively(
         print("""\
    (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
    show (c)ontext? [i]""")
-        ch = _portable.getch()
+        ch = _portable.getch().decode( "utf-8" )
         if ch in (_portable.CTRL_C, _portable.CTRL_D, _portable.CTRL_Z):
             sys.exit(2)
         elif ch in ('i', '\r', '\n'):
