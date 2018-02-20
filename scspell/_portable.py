@@ -37,7 +37,7 @@ try:
     import msvcrt
 
     def msvcrt_getch():
-        return msvcrt.getch()
+        return msvcrt.getwch()
     getch = msvcrt_getch
 
 except ImportError:
