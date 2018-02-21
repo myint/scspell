@@ -1,27 +1,16 @@
 language: python
 
-matrix:
-    include:
-      - python: "2.7"
-        os: linux
-      - python: "3.4"
-        os: linux
-      - python: "3.5"
-        os: linux
-      - python: "3.6"
-        os: linux
-      - os: osx
-        language: generic
+python:
+    - "2.7"
+    - "3.4"
+    - "3.5"
+    - "3.6"
 
 before_install:
-   - if [[ "$TRAVIS_OS_NAME" == "osx" ]];
-     then sudo pip install cram;
-     else      pip install cram; fi
+   - pip install cram
 
 install:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]];
-      then sudo python setup.py install;
-      else      python setup.py install; fi
+    - python setup.py install
 
 script:
     - cram --indent=4 test.cram
