@@ -462,8 +462,8 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
 
 
 def spell_check_token(
-        match_desc, filename, fq_filename, file_id_ref,
-        dicts, ignores, report_only):
+        match_desc, fq_filename, file_id,
+        dicts, ignores):
     """Spell check a single token.
 
     :param match_desc: description of the token matching instance
@@ -485,23 +485,61 @@ def spell_check_token(
         subtokens = decompose_token(token)
         unmatched_subtokens = [
             st for st in subtokens if len(st) > LEN_THRESHOLD and
-            (not dicts.match(st, filename, file_id_ref[0])) and
+            (not dicts.match(st, fq_filename, file_id)) and
             (st not in ignores)]
+        unmatched_subtokens = make_unique(unmatched_subtokens)
+        return unmatched_subtokens
+    return []
+
+
+def spell_check_str(source_text, fq_filename, dicts, ignores, c_escapes):
+    """Spell check an in-memory "file".
+
+    :param fq_filename: fully-qualified filename
+    :param dicts: dictionary set against which to perform matching
+    :type  dicts: CorporaFile
+    :param ignores: set of tokens to ignore for this session
+
+    """
+    # Look for a file ID
+    file_id = None
+    m_id = FILE_ID_REGEX.search(source_text)
+    if m_id is not None:
+        file_id = m_id.group(1)
+        _util.mutter(
+            _util.VERBOSITY_DEBUG,
+            '(File contains id "%s".)' %
+            file_id)
+    else:
+        file_id = dicts.file_id_of_file(fq_filename)
+
+    if c_escapes:
+        token_regex = C_ESCAPE_TOKEN_REGEX
+    else:
+        token_regex = TOKEN_REGEX
+
+    # Search for tokens to spell-check
+    data = source_text
+    pos = 0
+    while True:
+        m = token_regex.search(data, pos)
+        if m is None:
+            break
+        if (m_id is not None and
+                m.start() >= m_id.start() and
+                m.start() < m_id.end()):
+            # This is matching the file-id.  Skip over it.
+            pos = m_id.end()
+            continue
+        match_desc = MatchDescriptor(data, m)
+        unmatched_subtokens = spell_check_token(match_desc,
+                                   fq_filename, file_id,
+                                   dicts, ignores)
+        pos = match_desc.get_ofs() + len(match_desc.get_token())
         if unmatched_subtokens:
-            unmatched_subtokens = make_unique(unmatched_subtokens)
-            if report_only:
-                return (report_failed_check(match_desc, filename,
-                                            unmatched_subtokens),
-                        True)
-            else:
-                return (
-                    handle_failed_check_interactively(
-                        match_desc, filename, fq_filename, file_id_ref,
-                        unmatched_subtokens, dicts, ignores),
-                    True)
-    return (
-        (match_desc.get_string(), match_desc.get_ofs() + len(token)),
-        False)
+            new_data = yield file_id, match_desc, unmatched_subtokens
+            if new_data:
+                data, pos = new_data
 
 
 def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
@@ -523,52 +561,31 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
               file=sys.stderr)
         return False
 
-    # Look for a file ID
-    file_id = None
-    m_id = FILE_ID_REGEX.search(source_text)
-    if m_id is not None:
-        file_id = m_id.group(1)
-        _util.mutter(
-            _util.VERBOSITY_DEBUG,
-            '(File contains id "%s".)' %
-            file_id)
-    else:
-        file_id = dicts.file_id_of_file(fq_filename)
-
-    file_id_ref = [file_id]  # allow for spell_check() creating a file_id
-
-    if c_escapes:
-        token_regex = C_ESCAPE_TOKEN_REGEX
-    else:
-        token_regex = TOKEN_REGEX
-
-    # Search for tokens to spell-check
-    data = source_text
-    pos = 0
     okay = True
+    speller = spell_check_str(source_text, fq_filename, dicts, ignores, c_escapes)
+    new_pos = None
     while True:
-        m = token_regex.search(data, pos)
-        if m is None:
+        try:
+            file_id, match_desc, unmatched_subtokens = speller.send(new_pos)
+        except StopIteration:
             break
-        if (m_id is not None and
-                m.start() >= m_id.start() and
-                m.start() < m_id.end()):
-            # This is matching the file-id.  Skip over it.
-            pos = m_id.end()
-            continue
-        result = spell_check_token(MatchDescriptor(data, m),
-                                   filename, fq_filename, file_id_ref,
-                                   dicts, ignores, report_only)
-        (data, pos) = result[0]
-        error_found = result[1]
-        if error_found:
-            okay = False
+        okay = False
+        if report_only:
+            report_failed_check(match_desc, filename,
+                                        unmatched_subtokens)
+        else:
+            # HACK: Satisfy handle_failed_check_interactively API.  Mutation of
+            # file_id is currently not handled.
+            file_id_ref = [file_id]
+            new_pos = handle_failed_check_interactively(
+                    match_desc, filename, fq_filename, file_id_ref,
+                    unmatched_subtokens, dicts, ignores)
 
     # Write out the source file if it was modified
-    if data != source_text:
+    if new_pos and new_pos[0] != source_text:
         with _util.open_with_encoding(fq_filename, mode='w') as source_file:
             try:
-                source_file.write(data)
+                source_file.write(new_pos[0])
             except IOError as e:
                 print(str(e), file=sys.stderr)
                 return False
