@@ -75,10 +75,10 @@ SCSPELL_BUILTIN_DICT = os.path.join(SCSPELL_DATA_DIR, 'dictionary.txt')
 
 SCSPELL_CONF = os.path.join(USER_DATA_DIR, 'scspell.conf')
 
-# Treat anything alphanumeric as a token of interest, as long as it is not
-# immediately preceded by a single backslash.  (The string "\ntext" should
-# match on "text" rather than "ntext".)
-# C_ESCAPE_TOKEN_REGEX = re.compile(r'(?<![^\\]\\)\w+')
+# Treat anything alphanumeric, or beginning with a backslash (\) as a single
+# word. The string with will be checked by considering and ignoring the
+# character immediately following the backslash, and if either of them make
+# sense, no warning will be shown.
 C_ESCAPE_TOKEN_REGEX = re.compile(r'(\\?)\w+')
 
 # \ is not a character escape in e.g. LaTeX
@@ -482,28 +482,25 @@ def spell_check_token(
 
     """
     token = match_desc.get_token()
-
     if (token.lower() not in ignores) and (HEX_REGEX.match(token) is None):
         subtokens = decompose_token(token)
-
         unmatched_subtokens = [
             st for st in subtokens if len(st) > LEN_THRESHOLD and
             (not dicts.match(st, filename, file_id_ref[0])) and
-            (st not in ignores)
-        ]
+            (st not in ignores)]
 
-        if (len(unmatched_subtokens) > 0) and \
-                unmatched_subtokens[0].startswith('\\'):
+        if ((len(unmatched_subtokens) > 0) and
+                unmatched_subtokens[0].startswith('\\')):
             st = unmatched_subtokens[0]
 
-            with_next = (len(st[1:]) <= LEN_THRESHOLD) or \
-                (dicts.match(st[1:], filename, file_id_ref[0])) or \
-                (st[1:] in ignores)
-            without_next = (len(st[2:]) <= LEN_THRESHOLD) or \
-                (dicts.match(st[2:], filename, file_id_ref[0])) or \
-                (st[2:] in ignores)
+            with_next = ((len(st[1:]) <= LEN_THRESHOLD) or
+                (dicts.match(st[1:], filename, file_id_ref[0])) or
+                (st[1:] in ignores))
+            without_next = ((len(st[2:]) <= LEN_THRESHOLD) or
+                (dicts.match(st[2:], filename, file_id_ref[0])) or
+                (st[2:] in ignores))
 
-            if (with_next or without_next):
+            if with_next or without_next:
                 unmatched_subtokens.pop(0)
 
         if unmatched_subtokens:
