@@ -482,15 +482,12 @@ def spell_check_token(
 
     """
     token = match_desc.get_token()
-
     if (token.lower() not in ignores) and (HEX_REGEX.match(token) is None):
         subtokens = decompose_token(token)
-
         unmatched_subtokens = [
             st for st in subtokens if len(st) > LEN_THRESHOLD and
             (not dicts.match(st, filename, file_id_ref[0])) and
-            (st not in ignores)
-        ]
+            (st not in ignores)]
 
         if (len(unmatched_subtokens) > 0) and \
                 unmatched_subtokens[0].startswith('\\'):
