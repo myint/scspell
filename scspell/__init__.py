@@ -463,7 +463,7 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
 
 def spell_check_token(
         match_desc, filename, fq_filename, file_id_ref,
-        dicts, ignores, report_only):
+        dicts, ignores, report_only, list_unique):
     """Spell check a single token.
 
     :param match_desc: description of the token matching instance
@@ -487,9 +487,15 @@ def spell_check_token(
             st for st in subtokens if len(st) > LEN_THRESHOLD and
             (not dicts.match(st, filename, file_id_ref[0])) and
             (st not in ignores)]
+
         if unmatched_subtokens:
             unmatched_subtokens = make_unique(unmatched_subtokens)
-            if report_only:
+            if list_unique:
+                return ((match_desc.get_string(),
+                            match_desc.get_ofs() + len(token)),
+                        True)
+
+            elif report_only:
                 return (report_failed_check(match_desc, filename,
                                             unmatched_subtokens),
                         True)
@@ -499,12 +505,14 @@ def spell_check_token(
                         match_desc, filename, fq_filename, file_id_ref,
                         unmatched_subtokens, dicts, ignores),
                     True)
+
     return (
         (match_desc.get_string(), match_desc.get_ofs() + len(token)),
         False)
 
 
-def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
+def spell_check_file(filename, dicts, ignores, report_only, c_escapes,
+                        list_unique):
     """Spell check a single file.
 
     :param filename: name of the file to check
@@ -544,8 +552,11 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
 
     # Search for tokens to spell-check
     data = source_text
+    prev = 0
     pos = 0
     okay = True
+    errors = dict()
+
     while True:
         m = token_regex.search(data, pos)
         if m is None:
@@ -556,13 +567,32 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
             # This is matching the file-id.  Skip over it.
             pos = m_id.end()
             continue
-        result = spell_check_token(MatchDescriptor(data, m),
+        md = MatchDescriptor(data, m)
+        result = spell_check_token(md,
                                    filename, fq_filename, file_id_ref,
-                                   dicts, ignores, report_only)
+                                   dicts, ignores, report_only, list_unique)
+        prev = pos
         (data, pos) = result[0]
         error_found = result[1]
+
         if error_found:
             okay = False
+            if list_unique:
+                err = data[prev:pos]
+                if err in errors:
+                    errors[err].append(md.get_line_num())
+                else:
+                    errors[err] = [md.get_line_num()]
+
+    if list_unique:
+        errors = list(errors.items())
+        errors.sort(key=lambda x: x[1])
+
+        print('Set of misspelled tokens:', file=sys.stderr)
+        for row in errors:
+            print('%s:[%s]: %s' % (filename,
+                                    ', '.join(list(map(str, row[1]))),
+                                    row[0].lstrip()), file=sys.stderr)
 
     # Write out the source file if it was modified
     if data != source_text:
@@ -673,7 +703,7 @@ def find_dict_file(override_dictionary):
 def spell_check(source_filenames, override_dictionary=None,
                 base_dicts=[],
                 relative_to=None, report_only=False, c_escapes=True,
-                test_input=False):
+                test_input=False, list_unique=False):
     """Run the interactive spell checker on the set of source_filenames.
 
     If override_dictionary is provided, it shall be used as a dictionary
@@ -691,7 +721,8 @@ def spell_check(source_filenames, override_dictionary=None,
     with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
         ignores = set()
         for f in source_filenames:
-            if not spell_check_file(f, dicts, ignores, report_only, c_escapes):
+            if not spell_check_file(f, dicts, ignores, report_only, c_escapes,
+                                    list_unique):
                 okay = False
     return okay
 
@@ -804,6 +835,9 @@ def main():
         '--no-c-escapes', dest='c_escapes',
         action='store_false', default=True,
         help='treat \\label as label, for e.g. LaTeX')
+    spell_group.add_argument(
+        '--list-unique', dest='list_unique', action='store_true',
+        help='lists only unique errors in non-interactive report')
 
     dict_group.add_argument(
         '--override-dictionary', dest='override_filename',
@@ -949,5 +983,6 @@ def main():
                            args.relative_to,
                            args.report,
                            args.c_escapes,
-                           args.test_input)
+                           args.test_input,
+                           args.list_unique)
         return 0 if okay else 1
