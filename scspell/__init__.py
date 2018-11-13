@@ -673,7 +673,7 @@ def find_dict_file(override_dictionary):
 def spell_check(source_filenames, override_dictionary=None,
                 base_dicts=[],
                 relative_to=None, report_only=False, c_escapes=True,
-                test_input=False):
+                test_input=False, ext=['']):
     """Run the interactive spell checker on the set of source_filenames.
 
     If override_dictionary is provided, it shall be used as a dictionary
@@ -691,8 +691,17 @@ def spell_check(source_filenames, override_dictionary=None,
     with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
         ignores = set()
         for f in source_filenames:
-            if not spell_check_file(f, dicts, ignores, report_only, c_escapes):
-                okay = False
+            if not os.path.isdir(f):
+                if not spell_check_file(f, dicts, ignores, report_only, c_escapes):
+                    okay = False
+            else:
+                for dir, subdir, files in os.walk(f):
+                    for fil in files:
+                        for extn in ext:
+                            if fil.endswith(extn):
+                                if not spell_check_file(os.path.join(dir, fil), dicts, ignores, report_only, c_escapes):
+                                    okay = False
+                                break
     return okay
 
 
@@ -804,6 +813,10 @@ def main():
         '--no-c-escapes', dest='c_escapes',
         action='store_false', default=True,
         help='treat \\label as label, for e.g. LaTeX')
+    spell_group.add_argument(
+        '--extensions', '-e', dest='ext',
+        action='append', default=[],
+        help='list of extensions to check, in case of directories')
 
     dict_group.add_argument(
         '--override-dictionary', dest='override_filename',
@@ -893,6 +906,9 @@ def main():
     if args.debug:
         set_verbosity(VERBOSITY_MAX)
 
+    if not args.ext:
+        args.ext.append('')
+
     if args.gen_id:
         print('scspell-id: %s' % get_new_file_id())
     elif args.dictionary is not None:
@@ -949,5 +965,6 @@ def main():
                            args.relative_to,
                            args.report,
                            args.c_escapes,
-                           args.test_input)
+                           args.test_input,
+                           args.ext)
         return 0 if okay else 1
