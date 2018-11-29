@@ -29,7 +29,7 @@ import errno
 import io
 import json
 import os
-import re
+import regex
 import sys
 from bisect import bisect_left
 from . import _util
@@ -41,7 +41,7 @@ DICT_TYPE_FILEID = 'FILEID'        # Identifies file-specific dictionary
 
 
 # Valid file ID strings take this form
-FILE_ID_REGEX = re.compile(r'[a-zA-Z0-9_\-]+')
+FILE_ID_REGEX = regex.compile(r'[a-zA-Z0-9_\-]+')
 
 
 MATCH_NATURAL = 0x1

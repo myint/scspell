@@ -25,7 +25,7 @@ from __future__ import unicode_literals
 
 import argparse
 import os
-import re
+import regex
 import sys
 import shutil
 import uuid
@@ -78,22 +78,22 @@ SCSPELL_CONF = os.path.join(USER_DATA_DIR, 'scspell.conf')
 # Treat anything alphanumeric as a token of interest, as long as it is not
 # immediately preceded by a single backslash.  (The string "\ntext" should
 # match on "text" rather than "ntext".)
-C_ESCAPE_TOKEN_REGEX = re.compile(r'(?<![^\\]\\)\w+')
+C_ESCAPE_TOKEN_REGEX = regex.compile(r'(?<![^\\]\\)\w+')
 
 # \ is not a character escape in e.g. LaTeX
-TOKEN_REGEX = re.compile(r'\w+')
+TOKEN_REGEX = regex.compile(r'\w+')
 
 # Hex digits will be treated as a special case, because they can look like
 # word-like even though they are actually numeric
-HEX_REGEX = re.compile(r'0x[0-9a-fA-F]+')
+HEX_REGEX = regex.compile(r'0x[0-9a-fA-F]+')
 
 # We assume that tokens will be split using either underscores,
 # digits, or camelCase conventions (or both)
-US_REGEX = re.compile(r'[_\d]+')
-CAMEL_WORD_REGEX = re.compile(r'([A-Z][a-z]*)')
+US_REGEX = regex.compile(r'[_\d]+')
+CAMEL_WORD_REGEX = regex.compile(r'([[:upper:]][[:lower:]]*)')
 
 # File-id specifiers take this form
-FILE_ID_REGEX = re.compile(r'scspell-id:[ \t]*([a-zA-Z0-9_\-]+)')
+FILE_ID_REGEX = regex.compile(r'scspell-id:[ \t]*([a-zA-Z0-9_\-]+)')
 
 
 class MatchDescriptor(object):
@@ -384,7 +384,7 @@ def handle_failed_check_interactively(
     print("%s:%u: Unmatched '%s' --> {%s}" %
           (filename, match_desc.get_line_num(), token,
            ', '.join([st for st in unmatched_subtokens])))
-    MATCH_REGEX = re.compile(re.escape(match_desc.get_token()))
+    MATCH_REGEX = regex.compile(regex.escape(match_desc.get_token()))
     while True:
         print("""\
    (i)gnore, (I)gnore all, (r)eplace, (R)eplace all, (a)dd to dictionary, or
@@ -405,7 +405,7 @@ def handle_failed_check_interactively(
       (Canceled.)\n""")
             else:
                 ignores.add(replacement.lower())
-                tail = re.sub(
+                tail = regex.sub(
                     MATCH_REGEX, replacement, match_desc.get_remainder(),
                     1 if ch == 'r' else 0)
                 print()
@@ -771,7 +771,7 @@ def add_to_dict(dictionary_type, word, files=[],
             dicts.add_by_file_id(word, file_id)
 
         elif dictionary_type[0] == 'p':
-            ext = re.sub(r'.*\.', '.', '.{}'.format(files[0].lower()))
+            ext = regex.sub(r'.*\.', '.', '.{}'.format(files[0].lower()))
             if not dicts.add_by_extension(word, ext):
                 print("Dictionary for file extension '{}' not found."
                       .format(ext), file=sys.stderr)
