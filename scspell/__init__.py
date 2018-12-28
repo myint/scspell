@@ -461,6 +461,42 @@ def report_failed_check(match_desc, filename, unmatched_subtokens):
             match_desc.get_ofs() + len(match_desc.get_token()))
 
 
+class Report(object):
+    """Collect unmatched subtokens and classify into known and unknown words.
+
+    An instance of this class can be passed to ``spell_check()`` as the
+    ``report_only`` argument.
+    """
+
+    def __init__(self, known_words):
+        """
+        Constructor.
+
+        :param known_words: known words
+        :type  known_words: iterable
+        """
+        self.known_words = known_words
+        self.found_known_words = set()
+        self.unknown_words = set()
+
+    def __call__(self, match_desc, filename, unmatched_subtokens):
+        for subtoken in list(unmatched_subtokens):
+            if subtoken in self.known_words:
+                self.found_known_words.add(subtoken)
+                unmatched_subtokens.remove(subtoken)
+                continue
+        self.unknown_words |= set(unmatched_subtokens)
+
+        if unmatched_subtokens:
+            # call function to report unmatched subtokens
+            return report_failed_check(
+                match_desc, filename, unmatched_subtokens)
+        # otherwise just make the caller of the function happy
+        return (
+            match_desc.get_string(),
+            match_desc.get_ofs() + len(match_desc.get_token()))
+
+
 def spell_check_token(
         match_desc, filename, fq_filename, file_id_ref,
         dicts, ignores, report_only):
@@ -490,8 +526,10 @@ def spell_check_token(
         if unmatched_subtokens:
             unmatched_subtokens = make_unique(unmatched_subtokens)
             if report_only:
-                return (report_failed_check(match_desc, filename,
-                                            unmatched_subtokens),
+                function = getattr(
+                    report_only, '__call__', report_failed_check)
+                return (function(match_desc, filename,
+                                 unmatched_subtokens),
                         True)
             else:
                 return (
