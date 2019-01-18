@@ -711,7 +711,8 @@ def find_dict_file(override_dictionary):
 def spell_check(source_filenames, override_dictionary=None,
                 base_dicts=[],
                 relative_to=None, report_only=False, c_escapes=True,
-                test_input=False):
+                test_input=False,
+                additional_extensions=None):
     """Run the interactive spell checker on the set of source_filenames.
 
     If override_dictionary is provided, it shall be used as a dictionary
@@ -727,6 +728,8 @@ def spell_check(source_filenames, override_dictionary=None,
 
     okay = True
     with CorporaFile(dict_file, base_dicts, relative_to) as dicts:
+        for extension in (additional_extensions or []):
+            dicts.register_extension(*extension)
         ignores = set()
         for f in source_filenames:
             if not spell_check_file(f, dicts, ignores, report_only, c_escapes):
