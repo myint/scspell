@@ -43,5 +43,6 @@ setuptools.setup(
         'Topic :: Software Development',
         'Topic :: Text Processing :: Linguistic',
         'Topic :: Utilities'],
-    platforms=['any']
+    platforms=['any'],
+    install_requires=['regex']
 )

@@ -16,7 +16,6 @@ Test okay file.
     $ echo 'This is okay.' > good.txt
     $ $SCSPELL good.txt
 
-
 Test file with --override-dictionary and a fileid mapping entry
 
     $ cp -a "$TESTDIR/tests" .
@@ -25,6 +24,14 @@ Test file with --override-dictionary and a fileid mapping entry
     >     'tests/fileidmap/inputfile.txt' 'tests/fileidmap/inputfile2.txt'
     tests/fileidmap/inputfile.txt:3: 'soem' not found in dictionary (from token 'soem')
     tests/fileidmap/inputfile2.txt:4: 'soem' not found in dictionary (from token 'soem')
+    [1]
+
+Test spelling mistake with diacritics.
+
+    $ $SCSPELL 'tests/basedicts/unicode-testfile'
+    tests/basedicts/unicode-testfile:1: 'b\xe4dly' not found in dictionary (from token 'B\xe4dly')
+    tests/basedicts/unicode-testfile:1: '\xe1lmost' not found in dictionary (from token '\xc1lmost')
+    tests/basedicts/unicode-testfile:1: '\xe7\xe5m\xe9l', '\xe7\xe4se' were not found in the dictionary (from token '\xc7\xe5m\xe9l\xc7\xe4se')
     [1]
 
 Test file ID manipulations
