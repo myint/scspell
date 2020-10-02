@@ -95,6 +95,9 @@ CAMEL_WORD_REGEX = re.compile(r'([A-Z][a-z]*)')
 # File-id specifiers take this form
 FILE_ID_REGEX = re.compile(r'scspell-id:[ \t]*([a-zA-Z0-9_\-]+)')
 
+# No spell-checking directive (ignores line)
+NO_SPELL = "# nospell"
+
 
 class MatchDescriptor(object):
 
@@ -579,6 +582,10 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
         token_regex = C_ESCAPE_TOKEN_REGEX
     else:
         token_regex = TOKEN_REGEX
+
+    # Remove lines with the '# nospell' directive
+    source_text = "".join(
+        [l for l in source_text.splitlines(keepends=True) if NO_SPELL not in l])
 
     # Search for tokens to spell-check
     data = source_text
