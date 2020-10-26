@@ -545,7 +545,8 @@ def spell_check_token(
         False)
 
 
-def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
+def spell_check_file(filename, dicts, ignores, report_only, c_escapes,
+                     disable_nospell):
     """Spell check a single file.
 
     :param filename: name of the file to check
@@ -583,9 +584,12 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes):
     else:
         token_regex = TOKEN_REGEX
 
-    # Remove lines with the '# nospell' directive
-    source_text = "".join(
-        [l for l in source_text.splitlines(keepends=True) if NO_SPELL not in l])
+    if not disable_nospell:
+        # Remove lines with the '# nospell' directive
+        source_text = "".join(
+            [l for l in source_text.splitlines(keepends=True)
+             if NO_SPELL not in l]
+        )
 
     # Search for tokens to spell-check
     data = source_text
@@ -718,7 +722,7 @@ def find_dict_file(override_dictionary):
 def spell_check(source_filenames, override_dictionary=None,
                 base_dicts=[],
                 relative_to=None, report_only=False, c_escapes=True,
-                test_input=False,
+                disable_nospell=False, test_input=False,
                 additional_extensions=None):
     """Run the interactive spell checker on the set of source_filenames.
 
@@ -739,7 +743,8 @@ def spell_check(source_filenames, override_dictionary=None,
             dicts.register_extension(*extension)
         ignores = set()
         for f in source_filenames:
-            if not spell_check_file(f, dicts, ignores, report_only, c_escapes):
+            if not spell_check_file(f, dicts, ignores, report_only, c_escapes,
+                                    disable_nospell):
                 okay = False
     return okay
 
@@ -852,6 +857,10 @@ def main():
         '--no-c-escapes', dest='c_escapes',
         action='store_false', default=True,
         help='treat \\label as label, for e.g. LaTeX')
+    spell_group.add_argument(
+        '--disable-nospell', action='store_true',
+        help='Disable the effect of "# nospell". This will spell check lines '
+             'with "# nospell" in.')
 
     dict_group.add_argument(
         '--override-dictionary', dest='override_filename',
