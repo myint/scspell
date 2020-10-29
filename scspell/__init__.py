@@ -587,8 +587,7 @@ def spell_check_file(filename, dicts, ignores, report_only, c_escapes,
     if not disable_nospell:
         # Remove lines with the '# nospell' directive
         source_text = "".join(
-            [l for l in source_text.splitlines(keepends=True)
-             if NO_SPELL not in l]
+            [l for l in source_text.splitlines(True) if NO_SPELL not in l]
         )
 
     # Search for tokens to spell-check
