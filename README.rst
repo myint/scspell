@@ -147,6 +147,14 @@ Spell-checking Options
  see the tokens "``lpha``", "``eta``", "``amma``", and "``elta``".
 
 
+--disable-nospell\
+ By default, **scspell** will ignore any lines in a file which contain the
+ string ``# nospell``. This inline directive allows users to select lines to
+ ommit from spell checking at their discretion.
+
+ The ``--disable-nospell`` will disable this functionality, and ``# nospell``
+ directives will be ignored by **scspell**.
+
 Creating File IDs
 -----------------
 
